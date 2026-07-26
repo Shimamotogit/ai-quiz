@@ -91,8 +91,7 @@
   width: min(360px, 100%);
 }
 
-.media-notice,
-.question-explanation {
+.media-notice {
   width: min(720px, 100%);
   margin: 0;
   padding: 9px 12px;
@@ -101,6 +100,46 @@
   color: #e2e8f0 !important;
   font-size: 0.95rem;
   line-height: 1.5;
+}
+
+.question-explanation {
+  width: min(860px, 100%);
+  margin: 12px 0 0;
+  padding: 20px 24px 22px;
+  border: 4px solid #facc15;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(67, 56, 202, 0.96));
+  color: #ffffff !important;
+  font-size: clamp(1.3rem, 2.3vw, 1.85rem);
+  font-weight: 850;
+  line-height: 1.65;
+  text-align: left;
+  box-shadow:
+    0 0 0 4px rgba(250, 204, 21, 0.2),
+    0 18px 45px rgba(0, 0, 0, 0.5),
+    0 0 34px rgba(250, 204, 21, 0.28);
+  animation: explanation-pop 360ms cubic-bezier(.2, .9, .25, 1.2) both;
+}
+
+.question-explanation::before {
+  display: block;
+  margin-bottom: 8px;
+  color: #fde047;
+  content: "💡 回答の解説";
+  font-size: 0.82em;
+  font-weight: 1000;
+  letter-spacing: 0.04em;
+}
+
+@keyframes explanation-pop {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .choice-label {
@@ -168,6 +207,11 @@
   .question-image-frame,
   .question-image-frame img {
     max-height: 24vh;
+  }
+
+  .question-explanation {
+    padding: 16px 18px;
+    font-size: clamp(1.15rem, 5vw, 1.45rem);
   }
 
   .choice-label {
