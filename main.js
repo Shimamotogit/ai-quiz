@@ -1,7 +1,5 @@
-import {
-  configureQuestionSource,
-  initializeQuestionSource
-} from "./question-source.js";
+import { configureQuestionDifficulty } from "./difficulty-filter.js";
+import { initializeQuestionSource } from "./question-source.js";
 import {
   initializeLaunchFlow,
   installReturnToTitleHandler
@@ -9,7 +7,7 @@ import {
 
 await initializeQuestionSource();
 const launchOptions = await initializeLaunchFlow();
-configureQuestionSource({ difficulty: launchOptions.difficulty });
+configureQuestionDifficulty(launchOptions.difficulty);
 
 await import("./detector-compat.js");
 await import("./app.js");
