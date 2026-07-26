@@ -3,6 +3,7 @@ const COLOR_CLASS_PREFIX = "choice-color-";
 const MAX_MEDIA_PATH_LENGTH = 240;
 
 let questionData = [];
+let lastMediaKey = "";
 
 function normalizeChoiceText(value) {
   return String(value ?? "")
@@ -56,6 +57,10 @@ function createMediaNotice(text) {
 function renderQuestionMedia(question, showExplanation = false) {
   const container = document.querySelector("#questionMedia");
   if (!container) return;
+
+  const mediaKey = `${question?.id ?? ""}|${showExplanation ? "explain" : "question"}`;
+  if (mediaKey === lastMediaKey) return;
+  lastMediaKey = mediaKey;
 
   container.replaceChildren();
   const nodes = [];
@@ -135,18 +140,29 @@ function decorateChoiceLabels() {
       label.dataset.rawChoiceText = label.textContent.trim();
     }
 
+    const colorClass = `${COLOR_CLASS_PREFIX}${(index % 6) + 1}`;
     for (const className of [...label.classList]) {
-      if (className.startsWith(COLOR_CLASS_PREFIX)) label.classList.remove(className);
+      if (className.startsWith(COLOR_CLASS_PREFIX) && className !== colorClass) {
+        label.classList.remove(className);
+      }
     }
-    label.classList.add(`${COLOR_CLASS_PREFIX}${(index % 6) + 1}`);
+    if (!label.classList.contains(colorClass)) {
+      label.classList.add(colorClass);
+    }
 
     const rawText = label.dataset.rawChoiceText;
+    if (
+      label.dataset.choiceDecorated === rawText &&
+      label.querySelector(".choice-badge") &&
+      label.querySelector(".choice-text")
+    ) {
+      return;
+    }
+
     const normalizedText = normalizeChoiceText(rawText);
     const badgeText = rawText === "〇" || rawText === "✕"
       ? rawText
       : CHOICE_LETTERS[index] ?? String(index + 1);
-
-    label.replaceChildren();
 
     const badge = document.createElement("span");
     badge.className = "choice-badge";
@@ -156,7 +172,8 @@ function decorateChoiceLabels() {
     body.className = "choice-text";
     body.textContent = normalizedText;
 
-    label.append(badge, body);
+    label.replaceChildren(badge, body);
+    label.dataset.choiceDecorated = rawText;
   });
 }
 
