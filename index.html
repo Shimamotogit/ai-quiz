@@ -12,7 +12,8 @@
   <title>カメラAI立ち位置クイズ</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="question-source.css" />
-  <script type="module" src="main.js?v=3"></script>
+  <link rel="stylesheet" href="feature-ui.css" />
+  <script type="module" src="main.js?v=4"></script>
 </head>
 <body>
   <main class="app-shell">
@@ -27,26 +28,62 @@
           <span id="statusText">準備中</span>
         </div>
         <h1 id="questionText">クイズを開始してください</h1>
+        <div id="questionMedia" class="question-media" aria-live="polite" hidden></div>
       </header>
 
       <div id="choiceLabels" class="choice-labels" aria-label="回答の選択肢" hidden></div>
 
       <section id="setupPanel" class="setup-panel" aria-labelledby="setupTitle">
         <div class="step-indicator" aria-label="設定手順">
-          <span data-step="game" class="active">1 ゲーム</span>
-          <span data-step="camera">2 カメラ</span>
-          <span data-step="participant">3 参加者</span>
-          <span data-step="answer">4 回答</span>
+          <span data-step="title" class="active">1 タイトル</span>
+          <span data-step="difficulty">2 難易度</span>
+          <span data-step="game">3 設定</span>
+          <span data-step="camera">4 カメラ</span>
+          <span data-step="participant">5 参加者</span>
+          <span data-step="answer">6 回答</span>
         </div>
 
-        <div id="gameStep" class="setup-step start-step">
-          <p class="eyebrow">カメラAIクイズ</p>
-          <h1 id="setupTitle">立ち位置で答えよう</h1>
-          <p>立つ場所を選んで回答する、カメラを使ったAIクイズです。</p>
+        <div id="titleStep" class="setup-step title-step start-step">
+          <p class="eyebrow">AIリテラシークイズ</p>
+          <h1 id="setupTitle">カメラAI立ち位置クイズ</h1>
+          <p>立つ場所で答える、写真・音声にも対応したブラウザ内完結型のAIクイズです。</p>
+          <div class="title-actions">
+            <button id="showDifficultyButton" class="primary-button large-button" type="button">スタート</button>
+          </div>
+          <p class="local-only-note">カメラ映像、選択したJSON、音声・画像の再生処理はブラウザ内で扱います。</p>
+        </div>
+
+        <div id="difficultyStep" class="setup-step difficulty-step start-step" hidden>
+          <p class="eyebrow">難易度選択</p>
+          <h1>遊ぶ問題を選んでください</h1>
+          <p>アップロードされた問題一覧の「子供向け」「大人向け」列を使って絞り込みます。</p>
+          <div class="difficulty-grid">
+            <button class="difficulty-card" type="button" data-difficulty-choice="kids">
+              <strong>子ども向け</strong>
+              <span>〇×中心で、やさしいAIの基礎問題</span>
+            </button>
+            <button class="difficulty-card" type="button" data-difficulty-choice="adults">
+              <strong>大人向け</strong>
+              <span>用語、著作権、セキュリティを含む実践問題</span>
+            </button>
+            <button class="difficulty-card" type="button" data-difficulty-choice="all">
+              <strong>すべて</strong>
+              <span>子ども向け・大人向けをまとめて出題</span>
+            </button>
+          </div>
+          <div class="form-row centered-row">
+            <button id="backToTitleButton" class="secondary-button" type="button">タイトルへ戻る</button>
+          </div>
+        </div>
+
+        <div id="gameStep" class="setup-step start-step" hidden>
+          <p class="eyebrow">ゲーム設定</p>
+          <h1>出題内容を設定</h1>
+          <p>問題ファイル、出題数、最大点を設定してからカメラを選択します。</p>
 
           <section class="question-source-panel" aria-labelledby="questionSourceTitle">
             <h2 id="questionSourceTitle">問題ファイル</h2>
-            <p>JSONファイルを選択できます。選択しない場合はサンプル問題を使用します。</p>
+            <p>JSONファイルを選択できます。選択しない場合は組み込みサンプル問題を使用します。</p>
             <div class="form-row centered-row">
               <input
                 id="questionFileInput"
@@ -76,6 +113,7 @@
           </div>
           <p id="gameSettingsStatus" class="setup-status"></p>
           <div class="form-row centered-row">
+            <button id="backToDifficultyButton" class="secondary-button" type="button">難易度へ戻る</button>
             <button id="confirmGameButton" class="primary-button large-button" type="button" disabled>設定して次へ</button>
           </div>
         </div>
@@ -134,7 +172,7 @@
         <p id="finalCorrectCount">0問中0問正解</p>
         <div class="form-row centered-row">
           <button id="restartButton" class="primary-button large-button" type="button">同じ設定でもう一度</button>
-          <button id="returnToStartButton" class="secondary-button" type="button">スタート画面へ</button>
+          <button id="returnToStartButton" class="secondary-button" type="button">タイトルへ戻る</button>
         </div>
       </section>
 
@@ -151,9 +189,9 @@
 
     <aside id="helpPanel" class="help-panel">
       <h2>遊び方</h2>
-      <p>開始画面で問題ファイル、出題数、最大点を決め、カメラ・参加者・回答方法を設定します。</p>
+      <p>タイトル画面から難易度を選び、問題ファイル、出題数、最大点、カメラ、参加者、回答方法を設定します。</p>
       <p>クイズ中は登録した1人だけを高精度人物検出モデルで追跡・採点します。上半身だけでも動作します。</p>
-      <p class="privacy-note">映像と選択したJSONはブラウザ内だけで処理され、サーバーには送信しません。</p>
+      <p class="privacy-note">映像、選択したJSON、画像、MP3音声はブラウザ内だけで処理され、サーバーには送信しません。</p>
     </aside>
   </main>
 </body>
