@@ -6,3 +6,11 @@
     inset 0 0 0 7px rgba(15, 23, 42, 0.72),
     0 0 16px rgba(226, 232, 240, 0.28);
 }
+
+.choice-labels:has(> .choice-label:nth-child(2):last-child) .choice-badge {
+  display: none;
+}
+
+.choice-labels:has(> .choice-label:nth-child(2):last-child) .choice-label {
+  gap: 0;
+}
