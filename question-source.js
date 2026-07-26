@@ -10,6 +10,8 @@ const MAX_QUESTION_TEXT_LENGTH = 1000;
 const MAX_CHOICES_PER_QUESTION = 20;
 const MAX_CHOICE_TEXT_LENGTH = 500;
 const MAX_ID_LENGTH = 120;
+const MAX_EXTRA_TEXT_LENGTH = 2000;
+const MAX_MEDIA_PATH_LENGTH = 240;
 
 let activeQuestionSource = null;
 const nativeFetch = window.fetch.bind(window);
@@ -84,12 +86,48 @@ function requireTrimmedString(value, label, maxLength) {
   return text;
 }
 
+function optionalTrimmedString(value, label, maxLength) {
+  if (value === undefined || value === null || value === "") return undefined;
+  return requireTrimmedString(value, label, maxLength);
+}
+
 function optionalBoundedInteger(value, fallback, min, max, label) {
   if (value === undefined) return fallback;
   if (!Number.isInteger(value) || value < min || value > max) {
     throw new Error(`${label}は${min}〜${max}の整数で指定してください。`);
   }
   return value;
+}
+
+function optionalLocalMediaPath(value, label, extensions) {
+  const path = optionalTrimmedString(value, label, MAX_MEDIA_PATH_LENGTH);
+  if (path === undefined) return undefined;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(path) || path.includes("\\") || path.split("/").includes("..")) {
+    throw new Error(`${label}は同一サイト内の相対パスで指定してください。`);
+  }
+  const lowerPath = path.toLowerCase().split("?")[0].split("#")[0];
+  if (!extensions.some((extension) => lowerPath.endsWith(extension))) {
+    throw new Error(`${label}の拡張子が許可されていません。`);
+  }
+  return path;
+}
+
+function normalizeDifficulty(value) {
+  const normalized = String(value ?? "").normalize("NFKC").trim().toLowerCase();
+  if (["kids", "kid", "children", "child", "子供", "子ども", "子供向け", "子ども向け"].includes(normalized)) return "kids";
+  if (["adults", "adult", "大人", "大人向け"].includes(normalized)) return "adults";
+  if (["all", "すべて", "全部"].includes(normalized)) return "all";
+  return null;
+}
+
+function sanitizeDifficulties(value, questionNumber) {
+  if (value === undefined || value === null || value === "") return ["all"];
+  const values = Array.isArray(value) ? value : [value];
+  const difficulties = [...new Set(values.map(normalizeDifficulty).filter(Boolean))];
+  if (difficulties.length === 0) {
+    throw new Error(`問題${questionNumber}のdifficultyはkids/adults/allで指定してください。`);
+  }
+  return difficulties.includes("all") ? ["all"] : difficulties;
 }
 
 export function validateAndSanitizeQuestionData(input) {
@@ -148,12 +186,29 @@ export function validateAndSanitizeQuestionData(input) {
       throw new Error(`問題${questionNumber}のcorrectIndexが選択肢の範囲外です。`);
     }
 
-    return {
+    const sanitized = {
       id,
       text,
       choices,
-      correctIndex: question.correctIndex
+      correctIndex: question.correctIndex,
+      difficulty: sanitizeDifficulties(question.difficulty, questionNumber)
     };
+
+    const explanation = optionalTrimmedString(question.explanation, `問題${questionNumber}のexplanation`, MAX_EXTRA_TEXT_LENGTH);
+    if (explanation !== undefined) sanitized.explanation = explanation;
+
+    const image = optionalLocalMediaPath(question.image, `問題${questionNumber}のimage`, [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"]);
+    if (image !== undefined) sanitized.image = image;
+
+    const imageAlt = optionalTrimmedString(question.imageAlt, `問題${questionNumber}のimageAlt`, 200);
+    if (imageAlt !== undefined) sanitized.imageAlt = imageAlt;
+
+    const audio = optionalLocalMediaPath(question.audio, `問題${questionNumber}のaudio`, [".mp3"]);
+    if (audio !== undefined) sanitized.audio = audio;
+
+    if (Number.isInteger(question.sourceLine) && question.sourceLine > 0) sanitized.sourceLine = question.sourceLine;
+
+    return sanitized;
   });
 
   const rawSettings = input.settings === undefined ? {} : input.settings;
@@ -287,7 +342,7 @@ function attachQuestionSourceControls() {
     try {
       const data = await parseQuestionFile(file);
       const source = {
-        version: 1,
+        version: 2,
         name: file.name.slice(0, 255),
         savedAt: new Date().toISOString(),
         data
@@ -327,7 +382,7 @@ async function loadActiveQuestionSource() {
     if (!stored?.data) return null;
 
     return {
-      version: 1,
+      version: 2,
       name: typeof stored.name === "string" ? stored.name.slice(0, 255) : "ローカル問題.json",
       savedAt: typeof stored.savedAt === "string" ? stored.savedAt : "",
       data: validateAndSanitizeQuestionData(stored.data)
