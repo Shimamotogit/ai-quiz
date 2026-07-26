@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">生成AI判定クイズ用のサンプル画像</title>
+  <desc id="desc">夕方の公園で犬とリードを描いた、画像判定問題用のサンプルイラスト。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f8c77e"/>
+      <stop offset="55%" stop-color="#8bb6ff"/>
+      <stop offset="100%" stop-color="#28527a"/>
+    </linearGradient>
+    <linearGradient id="grass" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#2f9f62"/>
+      <stop offset="100%" stop-color="#17623c"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" fill="url(#sky)"/>
+  <circle cx="800" cy="105" r="58" fill="#fff0a3" opacity=".88"/>
+  <path d="M0 366 C140 330 255 390 396 352 C560 310 692 352 960 320 L960 540 L0 540 Z" fill="url(#grass)"/>
+  <path d="M160 390 C250 338 335 378 420 350 C510 320 612 356 694 328" fill="none" stroke="#0f5132" stroke-width="12" stroke-linecap="round" opacity=".35"/>
+  <g transform="translate(352 230)">
+    <ellipse cx="165" cy="162" rx="170" ry="92" fill="#d9b07a"/>
+    <ellipse cx="285" cy="105" rx="78" ry="70" fill="#d9b07a"/>
+    <circle cx="308" cy="92" r="10" fill="#1f2937"/>
+    <ellipse cx="345" cy="116" rx="18" ry="12" fill="#111827"/>
+    <path d="M232 47 C250 -2 295 -8 306 34" fill="#8b5e34"/>
+    <path d="M95 102 C45 70 18 88 30 122 C44 164 86 169 106 150" fill="#d9b07a"/>
+    <path d="M77 226 L55 302 M170 238 L158 310 M266 222 L283 308 M326 188 L374 266" stroke="#8b5e34" stroke-width="28" stroke-linecap="round"/>
+    <path d="M345 130 C430 170 500 132 548 190" fill="none" stroke="#f8fafc" stroke-width="8" stroke-linecap="round" stroke-dasharray="26 20"/>
+    <circle cx="548" cy="190" r="17" fill="none" stroke="#f8fafc" stroke-width="7"/>
+  </g>
+  <g transform="translate(48 48)">
+    <rect width="310" height="96" rx="18" fill="#0f172a" opacity=".72"/>
+    <text x="24" y="42" fill="#fff" font-size="24" font-family="system-ui, sans-serif" font-weight="700">画像判定サンプル</text>
+    <text x="24" y="76" fill="#bfdbfe" font-size="18" font-family="system-ui, sans-serif">JSONの image で差し替えできます</text>
+  </g>
+</svg>
