@@ -4,7 +4,12 @@ import {
   initializeLaunchFlow,
   installReturnToTitleHandler
 } from "./launch-flow.js";
+import {
+  initializeAnswerTimerFeedback,
+  installAnswerTimingGuard
+} from "./answer-timer-feedback.js";
 
+installAnswerTimingGuard();
 await initializeQuestionSource();
 const launchOptions = await initializeLaunchFlow();
 configureQuestionDifficulty(launchOptions.difficulty);
@@ -14,4 +19,5 @@ await import("./app.js");
 
 const { initializeQuizMedia } = await import("./quiz-media.js");
 await initializeQuizMedia();
+await initializeAnswerTimerFeedback();
 installReturnToTitleHandler();
