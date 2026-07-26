@@ -6,7 +6,8 @@ import {
 } from "../answer-timer-feedback.js";
 
 async function testActiveZoneColor() {
-  const css = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
+  const css = await readFile(new URL("../choice-display-fixes.css", import.meta.url), "utf8");
+  const main = await readFile(new URL("../main.js", import.meta.url), "utf8");
   const palette = [
     "rgba(220, 38, 38, 0.62)",
     "rgba(37, 99, 235, 0.62)",
@@ -15,11 +16,16 @@ async function testActiveZoneColor() {
     "rgba(147, 51, 234, 0.62)",
     "rgba(8, 145, 178, 0.62)"
   ];
-  const activeColor = "rgba(255, 0, 200, 0.88)";
+  const activeColor = "rgba(71, 85, 105, 0.82)";
 
-  assert.match(css, /\.choice-label\.active\s*\{[^}]*background:\s*rgba\(255, 0, 200, 0\.88\)\s*!important/s);
+  assert.match(css, /\.choice-label\.active\s*\{[^}]*background:\s*rgba\(71, 85, 105, 0\.82\)\s*!important/s);
   assert.ok(!palette.includes(activeColor), "現在位置の色が選択肢色と重複しています");
-  console.log("✓ 1. 現在位置は選択肢と異なるマゼンタ色");
+  assert.doesNotMatch(css, /rgba\(255, 0, 200/, "強すぎるマゼンタ色が残っています");
+
+  const styleLoadIndex = main.indexOf("await loadChoiceDisplayFixStyles();");
+  const appImportIndex = main.indexOf('await import("./app.js")');
+  assert.ok(styleLoadIndex >= 0 && appImportIndex > styleLoadIndex, "回答表示用CSSがapp.jsより後に読み込まれています");
+  console.log("✓ 1. 現在位置は控えめなスレートグレーで、選択肢色と重複しない");
 }
 
 async function testExplanationVisibility() {
