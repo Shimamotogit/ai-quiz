@@ -28,6 +28,24 @@ async function testActiveZoneColor() {
   console.log("✓ 1. 現在位置は控えめなスレートグレーで、選択肢色と重複しない");
 }
 
+async function testTwoChoiceBadgeVisibility() {
+  const css = await readFile(new URL("../choice-display-fixes.css", import.meta.url), "utf8");
+  const quizMedia = await readFile(new URL("../quiz-media.js", import.meta.url), "utf8");
+
+  assert.match(
+    css,
+    /\.choice-labels:has\(> \.choice-label:nth-child\(2\):last-child\) \.choice-badge\s*\{[^}]*display:\s*none/s,
+    "2択専用のバッジ非表示ルールがありません"
+  );
+  assert.match(
+    quizMedia,
+    /const CHOICE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"\.split\(""\);/,
+    "3択以上で使うABCの定義が削除されています"
+  );
+  assert.match(quizMedia, /badge\.textContent = badgeText;/, "3択以上のバッジ生成処理が削除されています");
+  console.log("✓ 2. 2択だけバッジを隠し、3択以上のABC表示は維持");
+}
+
 async function testExplanationVisibility() {
   const css = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
 
@@ -35,7 +53,7 @@ async function testExplanationVisibility() {
   assert.match(css, /\.question-explanation\s*\{[^}]*border:\s*4px solid #facc15/s);
   assert.match(css, /\.question-explanation::before\s*\{[^}]*回答の解説/s);
   assert.match(css, /@keyframes explanation-pop/);
-  console.log("✓ 2. 解説は大文字・強調枠・見出し・表示アニメーション付き");
+  console.log("✓ 3. 解説は大文字・強調枠・見出し・表示アニメーション付き");
 }
 
 function testPausableClock() {
@@ -61,14 +79,14 @@ function testPausableClock() {
   clock.resume();
   realNow = 2920;
   assert.equal(clock.now(), 1420, "複数回の音声待機時間を正しく除外できません");
-  console.log("✓ 3a. 音声待機中は時計停止、終了後は連続した時刻から再開");
+  console.log("✓ 4a. 音声待機中は時計停止、終了後は連続した時刻から再開");
 }
 
 function testRemainingSecondsParser() {
   assert.equal(parseRemainingSeconds("東京：あと 1.2 秒"), 1.2);
   assert.equal(parseRemainingSeconds("あと0.5秒"), 0.5);
   assert.equal(parseRemainingSeconds("回答エリアへ移動してください"), null);
-  console.log("✓ 3b. 残り秒数を画面表示用に正しく解析");
+  console.log("✓ 4b. 残り秒数を画面表示用に正しく解析");
 }
 
 async function testTimerUiAndBootOrder() {
@@ -83,7 +101,7 @@ async function testTimerUiAndBootOrder() {
   const initializeIndex = main.indexOf("await initializeAnswerTimerFeedback();");
   assert.ok(installIndex >= 0 && appImportIndex > installIndex, "時間制御がapp.jsより後に初期化されています");
   assert.ok(initializeIndex > appImportIndex, "カウントダウンUIがapp.jsより前に初期化されています");
-  console.log("✓ 3c. 大型残り秒数UIと安全な起動順序");
+  console.log("✓ 4c. 大型残り秒数UIと安全な起動順序");
 }
 
 async function testQuestionJson() {
@@ -94,6 +112,7 @@ async function testQuestionJson() {
 }
 
 await testActiveZoneColor();
+await testTwoChoiceBadgeVisibility();
 await testExplanationVisibility();
 testPausableClock();
 testRemainingSecondsParser();
