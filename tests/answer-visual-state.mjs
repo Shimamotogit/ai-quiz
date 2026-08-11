@@ -4,12 +4,17 @@ import { normalizeChoiceResultClasses } from "../answer-visual-state.js";
 
 function createLabel(...classes) {
   const values = new Set(classes);
+  let removeCalls = 0;
   return {
     classList: {
       contains: (name) => values.has(name),
-      remove: (...names) => names.forEach((name) => values.delete(name))
+      remove: (...names) => {
+        removeCalls += 1;
+        names.forEach((name) => values.delete(name));
+      }
     },
-    has: (name) => values.has(name)
+    has: (name) => values.has(name),
+    removeCalls: () => removeCalls
   };
 }
 
@@ -24,10 +29,27 @@ function testResultNormalization() {
   assert.equal(wrongSelection.has("wrong"), false, "採点後に不正解位置の強調が残っています");
   assert.equal(correctAnswer.has("correct"), true, "正解位置の強調が消えています");
 
+  const removeCallsAfterFirstPass = wrongSelection.removeCalls() + correctAnswer.removeCalls() + untouched.removeCalls();
+  const secondPassChanged = normalizeChoiceResultClasses([wrongSelection, correctAnswer, untouched]);
+  const removeCallsAfterSecondPass = wrongSelection.removeCalls() + correctAnswer.removeCalls() + untouched.removeCalls();
+  assert.equal(secondPassChanged, false, "正規化済みDOMを再度変更しています");
+  assert.equal(removeCallsAfterSecondPass, removeCallsAfterFirstPass, "不要なclassList.removeがMutationObserver再帰を起こす可能性があります");
+
   const selecting = createLabel("choice-label", "active");
   assert.equal(normalizeChoiceResultClasses([selecting]), false);
   assert.equal(selecting.has("active"), true, "回答中の現在位置まで消しています");
-  console.log("✓ 採点後はactive/wrongを消して正解位置だけ残す");
+  console.log("✓ 採点後の正規化は1回だけ行い、再帰的なclass変更を起こさない");
+}
+
+async function testInitializationOrder() {
+  const main = await readFile(new URL("../main.js", import.meta.url), "utf8");
+  const systemAudioIndex = main.indexOf("await initializeSystemAudioFlow();");
+  const questionSpeechIndex = main.indexOf("await initializeQuestionSpeech();");
+  const visualStateIndex = main.indexOf("initializeAnswerVisualState();");
+
+  assert.ok(systemAudioIndex >= 0 && visualStateIndex > systemAudioIndex, "見た目正規化がシステム音声の正誤判定より先に登録されています");
+  assert.ok(questionSpeechIndex >= 0 && visualStateIndex > questionSpeechIndex, "見た目正規化が解説音声監視より先に登録されています");
+  console.log("✓ 正誤音声・解説音声が結果classを読んだ後に見た目を正規化");
 }
 
 async function testAnswerAndExplanationStyles() {
@@ -43,5 +65,6 @@ async function testAnswerAndExplanationStyles() {
 }
 
 testResultNormalization();
+await testInitializationOrder();
 await testAnswerAndExplanationStyles();
 console.log("Answer visual state checks passed.");
