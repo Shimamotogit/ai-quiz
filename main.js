@@ -16,7 +16,7 @@ import { initializeSystemAudioFlow } from "./system-audio-flow.js";
 import { installSystemAudioAlias } from "./system-audio-alias.js";
 import { installVoicevoxCredit } from "./voicevox-credit.js";
 import { initializeQuizShowUI } from "./quiz-show-ui.js";
-import { initializeAnswerVisualState } from "./answer-visual-state.js";
+import { initializeAnswerVisualState } from "./answer-visual-state.js?v=2";
 
 async function loadChoiceDisplayFixStyles() {
   const existing = document.querySelector('link[data-choice-display-fixes="true"]');
