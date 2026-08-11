@@ -16,6 +16,7 @@ import { initializeSystemAudioFlow } from "./system-audio-flow.js";
 import { installSystemAudioAlias } from "./system-audio-alias.js";
 import { installVoicevoxCredit } from "./voicevox-credit.js";
 import { initializeQuizShowUI } from "./quiz-show-ui.js";
+import { initializeAnswerVisualState } from "./answer-visual-state.js";
 
 async function loadChoiceDisplayFixStyles() {
   const existing = document.querySelector('link[data-choice-display-fixes="true"]');
@@ -52,6 +53,7 @@ await import("./app.js");
 
 const { initializeQuizMedia } = await import("./quiz-media.js");
 await initializeQuizMedia();
+initializeAnswerVisualState();
 await initializeAnswerTimerFeedback();
 
 // 再スタート時は結果画面を先に消す必要があるため、音声ガードより先に登録する。
