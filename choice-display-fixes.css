@@ -1,12 +1,12 @@
 .choice-label.active {
-  background: rgba(229, 241, 237, 0.94) !important;
+  background: rgba(255, 248, 219, 0.98) !important;
   filter: none;
-  box-shadow: inset 0 0 0 4px #176b5c;
+  box-shadow: inset 0 0 0 5px #ffc83d;
 }
 
 .choice-label.active .choice-badge {
-  border-color: #176b5c;
-  background: #176b5c;
+  border-color: #172033;
+  background: #172033;
   color: #ffffff;
 }
 
