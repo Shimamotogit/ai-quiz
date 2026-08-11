@@ -9,19 +9,19 @@ import { getPreparedAudioPath } from "../question-speech.js";
 
 async function testQuizChoiceDesign() {
   const css = await readFile(new URL("../choice-display-fixes.css", import.meta.url), "utf8");
-  const featureCss = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
+  const uiFixes = await readFile(new URL("../ui-stability-fixes.css", import.meta.url), "utf8");
   const main = await readFile(new URL("../main.js", import.meta.url), "utf8");
 
-  assert.match(css, /\.choice-label\.active\s*\{[^}]*background:\s*rgba\(255, 248, 219, 0\.98\)\s*!important/s);
-  assert.match(css, /box-shadow:\s*inset 0 0 0 5px #ffc83d/s);
-  assert.match(featureCss, /\.choice-color-1\s*\{[^}]*--quiz-red|\.choice-color-1\s*\{[^}]*var\(--quiz-red\)/s);
-  assert.match(featureCss, /\.choice-color-2\s*\{[^}]*var\(--quiz-blue\)/s);
-  assert.doesNotMatch(css, /#176b5c|rgba\(255, 0, 200/i, "旧アクセントやマゼンタ色が回答UIへ戻っています");
+  assert.match(css, /\.choice-label\.active\s*\{[^}]*background:\s*rgba\(248, 249, 251, 0\.98\)\s*!important/s);
+  assert.match(css, /box-shadow:\s*inset 0 0 0 3px rgba\(101, 115, 138, 0\.72\)/s);
+  assert.match(uiFixes, /\.choice-text\s*\{[^}]*text-overflow:\s*clip\s*!important/s);
+  assert.match(uiFixes, /\.choice-text\s*\{[^}]*white-space:\s*normal\s*!important/s);
+  assert.doesNotMatch(css, /#ffc83d|rgba\(255, 0, 200/i, "回答位置の黄色・マゼンタ強調が戻っています");
 
   const styleLoadIndex = main.indexOf("await loadChoiceDisplayFixStyles();");
   const appImportIndex = main.indexOf('await import("./app.js")');
   assert.ok(styleLoadIndex >= 0 && appImportIndex > styleLoadIndex, "回答表示用CSSがapp.jsより後に読み込まれています");
-  console.log("✓ 1. 回答レーンはクイズ識別色＋黄色の現在位置ハイライトで表示");
+  console.log("✓ 1. 回答文は省略せず、現在位置は薄い全周枠で表示");
 }
 
 async function testTwoChoiceBadgeVisibility() {
@@ -44,17 +44,17 @@ async function testTwoChoiceBadgeVisibility() {
 
 async function testCompactExplanationDesign() {
   const css = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
+  const uiFixes = await readFile(new URL("../ui-stability-fixes.css", import.meta.url), "utf8");
   const quizMedia = await readFile(new URL("../quiz-media.js", import.meta.url), "utf8");
 
   assert.match(css, /\.quiz-feedback-panel\s*\{[^}]*max-height:\s*112px/s);
   assert.match(css, /\.quiz-feedback-panel\s*\{[^}]*bottom:\s*calc\(22% \+ 10px\)/s);
-  assert.match(css, /\.question-explanation\s*\{[^}]*background:\s*transparent/s);
-  assert.match(css, /\.question-explanation\s*\{[^}]*animation:\s*none/s);
+  assert.match(uiFixes, /\.quiz-feedback-panel\s*\{[^}]*border:\s*1px solid rgba\(23, 32, 51, 0\.30\)\s*!important/s);
   assert.match(quizMedia, /function ensureFeedbackPanel\(\)/);
   assert.match(quizMedia, /stage\.append\(feedbackPanel\)/);
   assert.match(quizMedia, /stage\.append\(container\)/, "問題メディアが問題バー内に残っています");
-  assert.doesNotMatch(css, /explanation-pop|0 0 34px|backdrop-filter/i, "大型・発光型の解説UIが戻っています");
-  console.log("✓ 3. 解説と問題メディアを問題バーから分離し、映像を隠す面積を抑制");
+  assert.doesNotMatch(uiFixes, /quiz-yellow|#ffc83d/i, "解説等の上辺に黄色アクセントが戻っています");
+  console.log("✓ 3. 解説は低い横長帯を維持し、黄色ではなく薄い全周枠で表示");
 }
 
 function testPausableClock() {
@@ -92,11 +92,12 @@ function testRemainingSecondsParser() {
 
 async function testTimerUiAndBootOrder() {
   const css = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
+  const uiFixes = await readFile(new URL("../ui-stability-fixes.css", import.meta.url), "utf8");
   const main = await readFile(new URL("../main.js", import.meta.url), "utf8");
 
   assert.match(css, /\.answer-timer-panel\s*\{[^}]*width:\s*250px/s);
   assert.match(css, /\.answer-timer-value\s*\{[^}]*font-size:\s*clamp\(1\.8rem, 3vw, 2\.55rem\)/s);
-  assert.match(css, /\.answer-timer-progress > span\s*\{[^}]*background:\s*var\(--quiz-yellow\)/s);
+  assert.match(uiFixes, /\.answer-timer-progress > span\s*\{[^}]*background:\s*#aab5c5\s*!important/s);
   assert.match(css, /\.answer-timer-help\s*\{\s*display:\s*none/s);
 
   const installIndex = main.indexOf("installAnswerTimingGuard();");
@@ -125,17 +126,33 @@ async function testRestartTransitionBeforeAudio() {
   assert.match(flow, /if \(endScreen\) endScreen\.hidden = true;/, "前回結果を先に隠す処理がありません");
   assert.match(flow, /restartButton"\)\?\.addEventListener\("click", handleRestart, \{ capture: true \}\)/);
 
-  const restartFunction = flow.slice(flow.indexOf("function handleRestart"), flow.indexOf("function fitQuestionText"));
+  const restartFunction = flow.slice(flow.indexOf("function handleRestart"), flow.indexOf("function applyDefaultMaxScore"));
   assert.ok(
     restartFunction.indexOf('showRoundTransition("restart")') < restartFunction.indexOf("waitForSystemAudioIdle"),
     "結果画面の切替より先に音声待機処理が走っています"
   );
 
-  assert.match(flow, /QUESTION_FONT_MIN = 17/);
-  assert.match(flow, /questionText\.style\.whiteSpace = "nowrap"/);
-  assert.match(flow, /while \(questionText\.scrollWidth > available && size > QUESTION_FONT_MIN\)/);
-  assert.match(flow, /question-wrap-fallback/);
-  console.log("✓ 5. 同じ設定で再開すると前回結果を即座に消し、開始音声より先に次ゲーム画面へ切替");
+  assert.doesNotMatch(flow, /QUESTION_FONT_(?:MIN|MAX)|fitQuestionText|ResizeObserver/, "問題文の動的サイズ調整処理が残っています");
+  console.log("✓ 5. 再スタート順序を維持し、問題文の動的縮小は完全に廃止");
+}
+
+async function testStableTextAndDefaultScore() {
+  const uiFixes = await readFile(new URL("../ui-stability-fixes.css", import.meta.url), "utf8");
+  const flow = await readFile(new URL("../quiz-show-ui.js", import.meta.url), "utf8");
+  const index = await readFile(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(uiFixes, /\.question-card h1,[\s\S]*font-size:\s*clamp\(1\.25rem, 2\.55vw, 2\.2rem\)\s*!important/);
+  assert.match(uiFixes, /white-space:\s*normal\s*!important/);
+  assert.match(uiFixes, /\.choice-text\s*\{[\s\S]*overflow-wrap:\s*anywhere/);
+  assert.doesNotMatch(uiFixes, /text-overflow:\s*ellipsis/i, "回答文を省略する指定が追加されています");
+  assert.match(flow, /const DEFAULT_MAX_SCORE = 100;/);
+  assert.match(flow, /value === 500 \|\| value === 1000/);
+  assert.match(index, /id="maxScoreInput"[^>]*value="100"/);
+
+  const featureIndex = index.indexOf('href="feature-ui.css"');
+  const fixesIndex = index.indexOf('href="ui-stability-fixes.css"');
+  assert.ok(featureIndex >= 0 && fixesIndex > featureIndex, "安定表示CSSがfeature-ui.cssより前に読み込まれています");
+  console.log("✓ 6. 問題文・回答文を安定表示し、最大点数の初期値は100");
 }
 
 async function testQuestionMasterConversion() {
@@ -174,7 +191,7 @@ async function testQuestionMasterConversion() {
   assert.equal(converted.questions[0].text, "テスト問題");
   assert.equal(converted.questions[0].correctIndex, 1);
   assert.deepEqual(converted.questions[0].difficulty, ["kids"]);
-  console.log("✓ 6. 添付マスタ形式を既存出題形式へ変換し、不完全な5問を安全に除外");
+  console.log("✓ 7. 添付マスタ形式を既存出題形式へ変換し、不完全な5問を安全に除外");
 }
 
 async function testQuestionSpeechImplementation() {
@@ -201,29 +218,30 @@ async function testQuestionSpeechImplementation() {
   assert.match(speech, /pauseGameClock\(\)/);
   assert.match(speech, /resumeGameClock\(\)/);
   assert.match(speech, /event\.stopImmediatePropagation\(\)/);
-  console.log("✓ 7. 用意済みMP3を問題・回答後解説で優先し、無い場合だけブラウザ読み上げへフォールバック");
+  console.log("✓ 8. 用意済みMP3を問題・回答後解説で優先し、無い場合だけブラウザ読み上げへフォールバック");
 }
 
 async function testQuizShowVisualLanguage() {
   const styles = await readFile(new URL("../styles.css", import.meta.url), "utf8");
   const featureCss = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
+  const uiFixes = await readFile(new URL("../ui-stability-fixes.css", import.meta.url), "utf8");
   const index = await readFile(new URL("../index.html", import.meta.url), "utf8");
-  const combined = `${styles}\n${featureCss}`;
+  const combined = `${styles}\n${featureCss}\n${uiFixes}`;
 
-  assert.match(styles, /--quiz-yellow:\s*#ffc83d/);
   assert.match(styles, /--text:\s*#172033/);
   assert.match(styles, /\.question-card\s*\{[^}]*right:\s*10px[^}]*left:\s*10px/s);
-  assert.match(styles, /\.question-card h1\s*\{[^}]*white-space:\s*nowrap/s);
   assert.match(styles, /\.choice-labels\s*\{[^}]*height:\s*22%/s);
   assert.match(styles, /\.round-transition\s*\{/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(uiFixes, /\.question-card\s*\{[^}]*border:\s*1px solid rgba\(23, 32, 51, 0\.24\)\s*!important/s);
+  assert.match(uiFixes, /\.setup-panel,[\s\S]*border:\s*1px solid var\(--panel-outline-strong\)\s*!important/s);
   assert.doesNotMatch(combined, /radial-gradient|backdrop-filter|rgba\(255, 0, 200/i, "AIデモ風の視覚表現がCSSへ戻っています");
   assert.doesNotMatch(combined, /#176b5c/i, "ずんだもんを連想しやすい旧メイン緑アクセントが残っています");
   assert.match(index, /<title>立ち位置クイズ<\/title>/);
   assert.match(index, /LIVE QUIZ/);
   assert.match(index, /AIリテラシー/);
   assert.doesNotMatch(index, /カメラAI立ち位置クイズ|高精度人物検出モデル/);
-  console.log("✓ 8. ネイビー＋黄を軸に、クイズ番組として読める視覚言語を維持");
+  console.log("✓ 9. クイズ番組型の構成を維持しつつ、黄色の上辺ではなく薄い全周枠を適用");
 }
 
 await testQuizChoiceDesign();
@@ -233,6 +251,7 @@ testPausableClock();
 testRemainingSecondsParser();
 await testTimerUiAndBootOrder();
 await testRestartTransitionBeforeAudio();
+await testStableTextAndDefaultScore();
 await testQuestionMasterConversion();
 await testQuestionSpeechImplementation();
 await testQuizShowVisualLanguage();
