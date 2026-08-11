@@ -5,6 +5,7 @@ import {
   parseRemainingSeconds
 } from "../answer-timer-feedback.js";
 import { convertQuestionMasterData } from "../question-master-adapter.js";
+import { getPreparedAudioPath } from "../question-speech.js";
 
 async function testActiveZoneColor() {
   const css = await readFile(new URL("../choice-display-fixes.css", import.meta.url), "utf8");
@@ -150,13 +151,29 @@ async function testQuestionMasterConversion() {
 
 async function testQuestionSpeechImplementation() {
   const speech = await readFile(new URL("../question-speech.js", import.meta.url), "utf8");
+
+  const masterQuestion = { id: "Q001", sourceLine: 1 };
+  assert.equal(getPreparedAudioPath(masterQuestion, "question"), "音声データ_MP3/02.問題/001.mp3");
+  assert.equal(getPreparedAudioPath(masterQuestion, "explanation"), "音声データ_MP3/03.問題_補足説明/001.mp3");
+  assert.equal(
+    getPreparedAudioPath({ ...masterQuestion, audio: "audio/custom-question.mp3" }, "question"),
+    "audio/custom-question.mp3"
+  );
+  assert.equal(
+    getPreparedAudioPath({ ...masterQuestion, explanationAudio: "audio/custom-explanation.mp3" }, "explanation"),
+    "audio/custom-explanation.mp3"
+  );
+
   assert.match(speech, /new SpeechSynthesisUtterance\(text\)/);
   assert.match(speech, /utterance\.lang = "ja-JP"/);
+  assert.match(speech, /audio\.play\(\)/);
+  assert.match(speech, /startBrowserSpeech/);
+  assert.match(speech, /feedbackReading/);
+  assert.match(speech, /looksLikeQuizAutoAdvance/);
   assert.match(speech, /pauseGameClock\(\)/);
-  assert.match(speech, /utterance\.onend = \(\) => finishSpeech/);
   assert.match(speech, /resumeGameClock\(\)/);
   assert.match(speech, /event\.stopImmediatePropagation\(\)/);
-  console.log("✓ 6. 問題を日本語で読み上げ、終了まで回答用時計とスペース回答を停止");
+  console.log("✓ 6. 用意済みMP3を問題・回答後解説で優先し、無い場合だけブラウザ読み上げへフォールバック");
 }
 
 await testActiveZoneColor();
