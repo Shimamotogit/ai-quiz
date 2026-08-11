@@ -17,6 +17,7 @@ import { installSystemAudioAlias } from "./system-audio-alias.js";
 import { installVoicevoxCredit } from "./voicevox-credit.js";
 import { initializeQuizShowUI } from "./quiz-show-ui.js";
 import { initializeAnswerVisualState } from "./answer-visual-state.js?v=2";
+import { initializeQuizDefaults } from "./quiz-defaults.js?v=1";
 
 async function loadChoiceDisplayFixStyles() {
   const existing = document.querySelector('link[data-choice-display-fixes="true"]');
@@ -39,17 +40,40 @@ async function loadChoiceDisplayFixStyles() {
   });
 }
 
+async function loadCountdownNeutralStyles() {
+  const existing = document.querySelector('link[data-countdown-neutral="true"]');
+  if (existing) return;
+
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = new URL("./countdown-neutral.css?v=1", window.location.href).href;
+  link.dataset.countdownNeutral = "true";
+
+  await new Promise((resolve) => {
+    const finish = () => resolve();
+    link.addEventListener("load", finish, { once: true });
+    link.addEventListener("error", () => {
+      console.warn("カウントダウン用スタイルを読み込めませんでした。");
+      finish();
+    }, { once: true });
+    document.head.append(link);
+    window.setTimeout(finish, 2000);
+  });
+}
+
 installAnswerTimingGuard();
 installQuestionSpeechClock();
 installSystemAudioAlias();
 installVoicevoxCredit();
 await loadChoiceDisplayFixStyles();
+await loadCountdownNeutralStyles();
 await initializeQuestionSource();
 const launchOptions = await initializeLaunchFlow();
 configureQuestionDifficulty(launchOptions.difficulty);
 
 await import("./detector-compat.js");
 await import("./app.js");
+initializeQuizDefaults();
 
 const { initializeQuizMedia } = await import("./quiz-media.js");
 await initializeQuizMedia();

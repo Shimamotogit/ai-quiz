@@ -1,0 +1,9 @@
+/* スペース回答の3秒カウントダウンを、他のクイズUIと同じ中立パネルにする。 */
+#stage .countdown {
+  border: 1px solid rgba(23, 32, 51, 0.30) !important;
+  border-top-color: rgba(23, 32, 51, 0.30) !important;
+  border-top-width: 1px !important;
+  background: rgba(255, 253, 248, 0.97) !important;
+  color: #172033 !important;
+  box-shadow: 0 10px 24px rgba(5, 10, 20, 0.18) !important;
+}
