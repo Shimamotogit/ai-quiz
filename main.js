@@ -13,6 +13,7 @@ import {
   installQuestionSpeechClock
 } from "./question-speech.js";
 import { initializeSystemAudioFlow } from "./system-audio-flow.js";
+import { installSystemAudioAlias } from "./system-audio-alias.js";
 
 async function loadChoiceDisplayFixStyles() {
   const existing = document.querySelector('link[data-choice-display-fixes="true"]');
@@ -37,6 +38,7 @@ async function loadChoiceDisplayFixStyles() {
 
 installAnswerTimingGuard();
 installQuestionSpeechClock();
+installSystemAudioAlias();
 await loadChoiceDisplayFixStyles();
 await initializeQuestionSource();
 const launchOptions = await initializeLaunchFlow();
