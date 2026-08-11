@@ -4,6 +4,7 @@ import {
   createPausableClock,
   parseRemainingSeconds
 } from "../answer-timer-feedback.js";
+import { convertQuestionMasterData } from "../question-master-adapter.js";
 
 async function testActiveZoneColor() {
   const css = await readFile(new URL("../choice-display-fixes.css", import.meta.url), "utf8");
@@ -97,18 +98,65 @@ async function testTimerUiAndBootOrder() {
   assert.match(css, /\.answer-timer-progress/);
 
   const installIndex = main.indexOf("installAnswerTimingGuard();");
+  const speechClockIndex = main.indexOf("installQuestionSpeechClock();");
   const appImportIndex = main.indexOf('await import("./app.js")');
   const initializeIndex = main.indexOf("await initializeAnswerTimerFeedback();");
+  const speechInitializeIndex = main.indexOf("await initializeQuestionSpeech();");
   assert.ok(installIndex >= 0 && appImportIndex > installIndex, "時間制御がapp.jsより後に初期化されています");
+  assert.ok(speechClockIndex > installIndex && appImportIndex > speechClockIndex, "読み上げ用時計がapp.jsより後に初期化されています");
   assert.ok(initializeIndex > appImportIndex, "カウントダウンUIがapp.jsより前に初期化されています");
-  console.log("✓ 4c. 大型残り秒数UIと安全な起動順序");
+  assert.ok(speechInitializeIndex > initializeIndex, "問題読み上げがタイマーUIより前に初期化されています");
+  console.log("✓ 4c. 大型残り秒数UIと読み上げ用時計を安全な順序で初期化");
 }
 
-async function testQuestionJson() {
+async function testQuestionMasterConversion() {
   const text = await readFile(new URL("../questions.json", import.meta.url), "utf8");
   const data = JSON.parse(text);
-  assert.ok(Array.isArray(data.questions) && data.questions.length > 0);
-  console.log(`✓ 問題JSON: ${data.questions.length}問を解析`);
+  assert.equal(data.sourceMeta?.totalQuestions, 50);
+  assert.equal(data.sourceMeta?.usableQuestions, 45);
+  assert.equal(data.questions.length, 45);
+  assert.deepEqual(data.sourceMeta?.skippedQuestions?.map((item) => item.no), [21, 22, 23, 24, 26]);
+
+  const q1 = data.questions.find((question) => question.id === "Q001");
+  const q25 = data.questions.find((question) => question.id === "Q025");
+  assert.equal(q1?.correctIndex, 0);
+  assert.deepEqual(q1?.difficulty, ["kids"]);
+  assert.equal(q25?.correctIndex, 0);
+  assert.deepEqual(q25?.difficulty, ["adults"]);
+
+  const syntheticMaster = {
+    schema_version: "1.0",
+    questions: [
+      {
+        id: "Q900",
+        no: 900,
+        adopted: true,
+        question: "テスト問題",
+        choice_type: "true_false",
+        choices: ["〇", "✕"],
+        answer: "✕",
+        target: { children: true, adults: false, employees: false },
+        supplemental_comment: "テスト解説",
+        validation_warnings: []
+      }
+    ]
+  };
+  const converted = convertQuestionMasterData(syntheticMaster);
+  assert.equal(converted.questions[0].text, "テスト問題");
+  assert.equal(converted.questions[0].correctIndex, 1);
+  assert.deepEqual(converted.questions[0].difficulty, ["kids"]);
+  console.log("✓ 5. 添付マスタ形式を既存出題形式へ変換し、不完全な5問を安全に除外");
+}
+
+async function testQuestionSpeechImplementation() {
+  const speech = await readFile(new URL("../question-speech.js", import.meta.url), "utf8");
+  assert.match(speech, /new SpeechSynthesisUtterance\(text\)/);
+  assert.match(speech, /utterance\.lang = "ja-JP"/);
+  assert.match(speech, /pauseGameClock\(\)/);
+  assert.match(speech, /utterance\.onend = \(\) => finishSpeech/);
+  assert.match(speech, /resumeGameClock\(\)/);
+  assert.match(speech, /event\.stopImmediatePropagation\(\)/);
+  console.log("✓ 6. 問題を日本語で読み上げ、終了まで回答用時計とスペース回答を停止");
 }
 
 await testActiveZoneColor();
@@ -117,6 +165,7 @@ await testExplanationVisibility();
 testPausableClock();
 testRemainingSecondsParser();
 await testTimerUiAndBootOrder();
-await testQuestionJson();
+await testQuestionMasterConversion();
+await testQuestionSpeechImplementation();
 
 console.log("All validation checks passed.");
