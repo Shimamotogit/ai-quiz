@@ -53,11 +53,12 @@ await import("./app.js");
 
 const { initializeQuizMedia } = await import("./quiz-media.js");
 await initializeQuizMedia();
-initializeAnswerVisualState();
 await initializeAnswerTimerFeedback();
 
 // 再スタート時は結果画面を先に消す必要があるため、音声ガードより先に登録する。
 initializeQuizShowUI();
 await initializeSystemAudioFlow();
 await initializeQuestionSpeech();
+// 採点後の見た目正規化は、正誤を読む音声監視より後に登録する。
+initializeAnswerVisualState();
 installReturnToTitleHandler();
