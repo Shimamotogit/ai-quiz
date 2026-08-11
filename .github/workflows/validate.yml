@@ -32,7 +32,11 @@ jobs:
           node --check launch-flow.js
           node --check main.js
           node --check question-source.js
+          node --check question-speech.js
           node --check quiz-media.js
+          node --check system-audio-flow.js
 
       - name: Run focused validation tests
-        run: node tests/validate.mjs
+        run: |
+          node tests/validate.mjs
+          node tests/system-audio-flow.mjs
