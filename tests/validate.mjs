@@ -7,20 +7,21 @@ import {
 import { convertQuestionMasterData } from "../question-master-adapter.js";
 import { getPreparedAudioPath } from "../question-speech.js";
 
-async function testCalmChoiceDesign() {
+async function testQuizChoiceDesign() {
   const css = await readFile(new URL("../choice-display-fixes.css", import.meta.url), "utf8");
   const featureCss = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
   const main = await readFile(new URL("../main.js", import.meta.url), "utf8");
 
-  assert.match(css, /\.choice-label\.active\s*\{[^}]*background:\s*rgba\(229, 241, 237, 0\.94\)\s*!important/s);
-  assert.match(css, /box-shadow:\s*inset 0 0 0 4px #176b5c/s);
-  assert.doesNotMatch(css, /rgba\(255, 0, 200/, "強いマゼンタ色が回答UIに戻っています");
-  assert.doesNotMatch(featureCss, /choice-color-[1-6][^}]*rgba\(220, 38, 38|rgba\(37, 99, 235|rgba\(147, 51, 234/s, "回答ゾーンに強い多色表現が戻っています");
+  assert.match(css, /\.choice-label\.active\s*\{[^}]*background:\s*rgba\(255, 248, 219, 0\.98\)\s*!important/s);
+  assert.match(css, /box-shadow:\s*inset 0 0 0 5px #ffc83d/s);
+  assert.match(featureCss, /\.choice-color-1\s*\{[^}]*--quiz-red|\.choice-color-1\s*\{[^}]*var\(--quiz-red\)/s);
+  assert.match(featureCss, /\.choice-color-2\s*\{[^}]*var\(--quiz-blue\)/s);
+  assert.doesNotMatch(css, /#176b5c|rgba\(255, 0, 200/i, "旧アクセントやマゼンタ色が回答UIへ戻っています");
 
   const styleLoadIndex = main.indexOf("await loadChoiceDisplayFixStyles();");
   const appImportIndex = main.indexOf('await import("./app.js")');
   assert.ok(styleLoadIndex >= 0 && appImportIndex > styleLoadIndex, "回答表示用CSSがapp.jsより後に読み込まれています");
-  console.log("✓ 1. 回答位置はニュートラル面＋単一アクセントで表示");
+  console.log("✓ 1. 回答レーンはクイズ識別色＋黄色の現在位置ハイライトで表示");
 }
 
 async function testTwoChoiceBadgeVisibility() {
@@ -41,15 +42,19 @@ async function testTwoChoiceBadgeVisibility() {
   console.log("✓ 2. 2択だけバッジを隠し、3択以上のABC表示は維持");
 }
 
-async function testExplanationDesign() {
+async function testCompactExplanationDesign() {
   const css = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
+  const quizMedia = await readFile(new URL("../quiz-media.js", import.meta.url), "utf8");
 
-  assert.match(css, /\.question-explanation\s*\{[^}]*border-left:\s*4px solid var\(--accent\)/s);
-  assert.match(css, /\.question-explanation\s*\{[^}]*background:\s*var\(--surface\)/s);
-  assert.match(css, /\.question-explanation::before\s*\{[^}]*content:\s*"解説"/s);
+  assert.match(css, /\.quiz-feedback-panel\s*\{[^}]*max-height:\s*112px/s);
+  assert.match(css, /\.quiz-feedback-panel\s*\{[^}]*bottom:\s*calc\(22% \+ 10px\)/s);
+  assert.match(css, /\.question-explanation\s*\{[^}]*background:\s*transparent/s);
   assert.match(css, /\.question-explanation\s*\{[^}]*animation:\s*none/s);
-  assert.doesNotMatch(css, /#facc15|explanation-pop|0 0 34px/, "旧来の黄色発光・ポップ演出が戻っています");
-  console.log("✓ 3. 解説はマットな通常カード＋左アクセントで表示");
+  assert.match(quizMedia, /function ensureFeedbackPanel\(\)/);
+  assert.match(quizMedia, /stage\.append\(feedbackPanel\)/);
+  assert.match(quizMedia, /stage\.append\(container\)/, "問題メディアが問題バー内に残っています");
+  assert.doesNotMatch(css, /explanation-pop|0 0 34px|backdrop-filter/i, "大型・発光型の解説UIが戻っています");
+  console.log("✓ 3. 解説と問題メディアを問題バーから分離し、映像を隠す面積を抑制");
 }
 
 function testPausableClock() {
@@ -89,20 +94,48 @@ async function testTimerUiAndBootOrder() {
   const css = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
   const main = await readFile(new URL("../main.js", import.meta.url), "utf8");
 
-  assert.match(css, /\.answer-timer-value\s*\{[^}]*font-size:\s*clamp\(3\.2rem, 8vw, 5\.4rem\)/s);
-  assert.match(css, /\.answer-timer-progress/);
-  assert.match(css, /\.answer-timer-progress > span\s*\{[^}]*background:\s*var\(--accent\)/s);
+  assert.match(css, /\.answer-timer-panel\s*\{[^}]*width:\s*250px/s);
+  assert.match(css, /\.answer-timer-value\s*\{[^}]*font-size:\s*clamp\(1\.8rem, 3vw, 2\.55rem\)/s);
+  assert.match(css, /\.answer-timer-progress > span\s*\{[^}]*background:\s*var\(--quiz-yellow\)/s);
+  assert.match(css, /\.answer-timer-help\s*\{\s*display:\s*none/s);
 
   const installIndex = main.indexOf("installAnswerTimingGuard();");
   const speechClockIndex = main.indexOf("installQuestionSpeechClock();");
   const appImportIndex = main.indexOf('await import("./app.js")');
   const initializeIndex = main.indexOf("await initializeAnswerTimerFeedback();");
+  const quizUiIndex = main.indexOf("initializeQuizShowUI();");
+  const systemAudioIndex = main.indexOf("await initializeSystemAudioFlow();");
   const speechInitializeIndex = main.indexOf("await initializeQuestionSpeech();");
+
   assert.ok(installIndex >= 0 && appImportIndex > installIndex, "時間制御がapp.jsより後に初期化されています");
   assert.ok(speechClockIndex > installIndex && appImportIndex > speechClockIndex, "読み上げ用時計がapp.jsより後に初期化されています");
   assert.ok(initializeIndex > appImportIndex, "カウントダウンUIがapp.jsより前に初期化されています");
-  assert.ok(speechInitializeIndex > initializeIndex, "問題読み上げがタイマーUIより前に初期化されています");
-  console.log("✓ 4c. 読みやすい残り秒数UIと読み上げ用時計を安全な順序で初期化");
+  assert.ok(quizUiIndex > initializeIndex, "クイズ画面制御がタイマーUIより前に初期化されています");
+  assert.ok(systemAudioIndex > quizUiIndex, "再スタート画面制御より先にシステム音声ガードが登録されています");
+  assert.ok(speechInitializeIndex > systemAudioIndex, "問題読み上げがシステム音声より前に初期化されています");
+  console.log("✓ 4c. 小型タイマーと画面切替→システム音声の初期化順序を維持");
+}
+
+async function testRestartTransitionBeforeAudio() {
+  const flow = await readFile(new URL("../quiz-show-ui.js", import.meta.url), "utf8");
+
+  assert.match(flow, /function handleRestart\(event\)/);
+  assert.match(flow, /showRoundTransition\("restart"\);/);
+  assert.match(flow, /void waitForSystemAudioIdle\(\)\.then/);
+  assert.match(flow, /if \(endScreen\) endScreen\.hidden = true;/, "前回結果を先に隠す処理がありません");
+  assert.match(flow, /restartButton"\)\?\.addEventListener\("click", handleRestart, \{ capture: true \}\)/);
+
+  const restartFunction = flow.slice(flow.indexOf("function handleRestart"), flow.indexOf("function fitQuestionText"));
+  assert.ok(
+    restartFunction.indexOf('showRoundTransition("restart")') < restartFunction.indexOf("waitForSystemAudioIdle"),
+    "結果画面の切替より先に音声待機処理が走っています"
+  );
+
+  assert.match(flow, /QUESTION_FONT_MIN = 17/);
+  assert.match(flow, /questionText\.style\.whiteSpace = "nowrap"/);
+  assert.match(flow, /while \(questionText\.scrollWidth > available && size > QUESTION_FONT_MIN\)/);
+  assert.match(flow, /question-wrap-fallback/);
+  console.log("✓ 5. 同じ設定で再開すると前回結果を即座に消し、開始音声より先に次ゲーム画面へ切替");
 }
 
 async function testQuestionMasterConversion() {
@@ -141,7 +174,7 @@ async function testQuestionMasterConversion() {
   assert.equal(converted.questions[0].text, "テスト問題");
   assert.equal(converted.questions[0].correctIndex, 1);
   assert.deepEqual(converted.questions[0].difficulty, ["kids"]);
-  console.log("✓ 5. 添付マスタ形式を既存出題形式へ変換し、不完全な5問を安全に除外");
+  console.log("✓ 6. 添付マスタ形式を既存出題形式へ変換し、不完全な5問を安全に除外");
 }
 
 async function testQuestionSpeechImplementation() {
@@ -168,34 +201,40 @@ async function testQuestionSpeechImplementation() {
   assert.match(speech, /pauseGameClock\(\)/);
   assert.match(speech, /resumeGameClock\(\)/);
   assert.match(speech, /event\.stopImmediatePropagation\(\)/);
-  console.log("✓ 6. 用意済みMP3を問題・回答後解説で優先し、無い場合だけブラウザ読み上げへフォールバック");
+  console.log("✓ 7. 用意済みMP3を問題・回答後解説で優先し、無い場合だけブラウザ読み上げへフォールバック");
 }
 
-async function testCalmVisualLanguage() {
+async function testQuizShowVisualLanguage() {
   const styles = await readFile(new URL("../styles.css", import.meta.url), "utf8");
   const featureCss = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
   const index = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const combined = `${styles}\n${featureCss}`;
 
-  assert.match(styles, /color-scheme:\s*light/);
-  assert.match(styles, /--accent:\s*#176b5c/);
+  assert.match(styles, /--quiz-yellow:\s*#ffc83d/);
+  assert.match(styles, /--text:\s*#172033/);
+  assert.match(styles, /\.question-card\s*\{[^}]*right:\s*10px[^}]*left:\s*10px/s);
+  assert.match(styles, /\.question-card h1\s*\{[^}]*white-space:\s*nowrap/s);
+  assert.match(styles, /\.choice-labels\s*\{[^}]*height:\s*22%/s);
+  assert.match(styles, /\.round-transition\s*\{/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.doesNotMatch(combined, /radial-gradient|backdrop-filter|rgba\(255, 0, 200|0 0 34px/i, "AIデモ風の強い演出がCSSへ戻っています");
-  assert.match(index, /<title>立ち位置クイズ \| AIリテラシー<\/title>/);
-  assert.match(index, /<h1 id="setupTitle">立ち位置クイズ<\/h1>/);
-  assert.match(index, /テーマ：AIリテラシー/);
+  assert.doesNotMatch(combined, /radial-gradient|backdrop-filter|rgba\(255, 0, 200/i, "AIデモ風の視覚表現がCSSへ戻っています");
+  assert.doesNotMatch(combined, /#176b5c/i, "ずんだもんを連想しやすい旧メイン緑アクセントが残っています");
+  assert.match(index, /<title>立ち位置クイズ<\/title>/);
+  assert.match(index, /LIVE QUIZ/);
+  assert.match(index, /AIリテラシー/);
   assert.doesNotMatch(index, /カメラAI立ち位置クイズ|高精度人物検出モデル/);
-  console.log("✓ 7. ニュートラルな学習サービスの視覚言語と文言を維持");
+  console.log("✓ 8. ネイビー＋黄を軸に、クイズ番組として読める視覚言語を維持");
 }
 
-await testCalmChoiceDesign();
+await testQuizChoiceDesign();
 await testTwoChoiceBadgeVisibility();
-await testExplanationDesign();
+await testCompactExplanationDesign();
 testPausableClock();
 testRemainingSecondsParser();
 await testTimerUiAndBootOrder();
+await testRestartTransitionBeforeAudio();
 await testQuestionMasterConversion();
 await testQuestionSpeechImplementation();
-await testCalmVisualLanguage();
+await testQuizShowVisualLanguage();
 
 console.log("All validation checks passed.");
