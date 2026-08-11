@@ -8,6 +8,10 @@ import {
   initializeAnswerTimerFeedback,
   installAnswerTimingGuard
 } from "./answer-timer-feedback.js";
+import {
+  initializeQuestionSpeech,
+  installQuestionSpeechClock
+} from "./question-speech.js";
 
 async function loadChoiceDisplayFixStyles() {
   const existing = document.querySelector('link[data-choice-display-fixes="true"]');
@@ -31,6 +35,7 @@ async function loadChoiceDisplayFixStyles() {
 }
 
 installAnswerTimingGuard();
+installQuestionSpeechClock();
 await loadChoiceDisplayFixStyles();
 await initializeQuestionSource();
 const launchOptions = await initializeLaunchFlow();
@@ -42,4 +47,5 @@ await import("./app.js");
 const { initializeQuizMedia } = await import("./quiz-media.js");
 await initializeQuizMedia();
 await initializeAnswerTimerFeedback();
+await initializeQuestionSpeech();
 installReturnToTitleHandler();
