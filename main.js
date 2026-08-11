@@ -12,6 +12,7 @@ import {
   initializeQuestionSpeech,
   installQuestionSpeechClock
 } from "./question-speech.js";
+import { initializeSystemAudioFlow } from "./system-audio-flow.js";
 
 async function loadChoiceDisplayFixStyles() {
   const existing = document.querySelector('link[data-choice-display-fixes="true"]');
@@ -47,5 +48,6 @@ await import("./app.js");
 const { initializeQuizMedia } = await import("./quiz-media.js");
 await initializeQuizMedia();
 await initializeAnswerTimerFeedback();
+await initializeSystemAudioFlow();
 await initializeQuestionSpeech();
 installReturnToTitleHandler();
