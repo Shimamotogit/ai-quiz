@@ -28,6 +28,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check answer-timer-feedback.js
+          node --check answer-visual-state.js
           node --check app.js
           node --check difficulty-filter.js
           node --check launch-flow.js
@@ -42,5 +43,6 @@ jobs:
       - name: Run focused validation tests
         run: |
           node tests/validate.mjs
+          node tests/answer-visual-state.mjs
           node tests/system-audio-flow.mjs
           node tests/audio-license.mjs
