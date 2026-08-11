@@ -1,3 +1,5 @@
+import { adaptQuestionData } from "./question-master-adapter.js";
+
 const DATABASE_NAME = "camera-ai-quiz-local-data";
 const DATABASE_VERSION = 1;
 const STORE_NAME = "questionSources";
@@ -130,7 +132,28 @@ function sanitizeDifficulties(value, questionNumber) {
   return difficulties.includes("all") ? ["all"] : difficulties;
 }
 
-export function validateAndSanitizeQuestionData(input) {
+function sanitizeSourceMeta(value) {
+  if (!isPlainObject(value)) return undefined;
+  const totalQuestions = Number.isInteger(value.totalQuestions) && value.totalQuestions >= 0
+    ? value.totalQuestions
+    : undefined;
+  const usableQuestions = Number.isInteger(value.usableQuestions) && value.usableQuestions >= 0
+    ? value.usableQuestions
+    : undefined;
+  const skippedCount = Array.isArray(value.skippedQuestions) ? value.skippedQuestions.length : 0;
+  const warningCount = Array.isArray(value.warnings) ? value.warnings.length : 0;
+  return {
+    title: typeof value.title === "string" ? value.title.slice(0, 200) : "",
+    schemaVersion: typeof value.schemaVersion === "string" ? value.schemaVersion.slice(0, 40) : "",
+    totalQuestions,
+    usableQuestions,
+    skippedCount,
+    warningCount
+  };
+}
+
+export function validateAndSanitizeQuestionData(rawInput) {
+  const input = adaptQuestionData(rawInput);
   if (!isPlainObject(input)) {
     throw new Error("JSONの最上位はオブジェクトにしてください。");
   }
@@ -256,7 +279,8 @@ export function validateAndSanitizeQuestionData(input) {
     )
   };
 
-  return { settings, questions };
+  const sourceMeta = sanitizeSourceMeta(input.sourceMeta);
+  return sourceMeta ? { settings, questions, sourceMeta } : { settings, questions };
 }
 
 async function parseQuestionFile(file) {
@@ -303,16 +327,25 @@ function installLocalQuestionFetch() {
   };
 }
 
+function describeSourceMeta(data) {
+  const meta = data?.sourceMeta;
+  if (!meta || !Number.isInteger(meta.totalQuestions) || !Number.isInteger(meta.usableQuestions)) return "";
+  const skipped = Math.max(0, meta.totalQuestions - meta.usableQuestions);
+  return skipped > 0
+    ? `（全${meta.totalQuestions}問中${meta.usableQuestions}問を出題可能、${skipped}問は回答不備などのため除外）`
+    : `（${meta.usableQuestions}問）`;
+}
+
 function updateSourceStatus() {
   const status = document.querySelector("#questionSourceStatus");
   const sampleButton = document.querySelector("#useSampleQuestionsButton");
   if (!status || !sampleButton) return;
 
   if (activeQuestionSource?.data) {
-    status.textContent = `ローカル問題「${activeQuestionSource.name}」を使用中（${activeQuestionSource.data.questions.length}問）。内容はサーバーへ送信されません。`;
+    status.textContent = `ローカル問題「${activeQuestionSource.name}」を使用中（${activeQuestionSource.data.questions.length}問）${describeSourceMeta(activeQuestionSource.data)}。内容はサーバーへ送信されません。`;
     sampleButton.disabled = false;
   } else {
-    status.textContent = "サンプル問題を使用中です。JSONを選択するとブラウザ内だけで読み込みます。";
+    status.textContent = "添付のAIクイズ問題マスタから生成した問題セットを使用中です。別のJSONを選択するとブラウザ内だけで切り替えられます。";
     sampleButton.disabled = true;
   }
 }
@@ -342,7 +375,7 @@ function attachQuestionSourceControls() {
     try {
       const data = await parseQuestionFile(file);
       const source = {
-        version: 2,
+        version: 3,
         name: file.name.slice(0, 255),
         savedAt: new Date().toISOString(),
         data
@@ -361,7 +394,7 @@ function attachQuestionSourceControls() {
 
   sampleButton.addEventListener("click", async () => {
     setControlsBusy(true);
-    status.textContent = "ローカル問題を削除し、サンプル問題へ戻しています…";
+    status.textContent = "ローカル問題を削除し、添付マスタ由来の問題セットへ戻しています…";
     try {
       await clearStoredSource();
       activeQuestionSource = null;
@@ -382,17 +415,17 @@ async function loadActiveQuestionSource() {
     if (!stored?.data) return null;
 
     return {
-      version: 2,
+      version: 3,
       name: typeof stored.name === "string" ? stored.name.slice(0, 255) : "ローカル問題.json",
       savedAt: typeof stored.savedAt === "string" ? stored.savedAt : "",
       data: validateAndSanitizeQuestionData(stored.data)
     };
   } catch (error) {
-    console.warn("ローカル問題データを読み込めませんでした。サンプル問題を使用します。", error);
+    console.warn("ローカル問題データを読み込めませんでした。既定の問題セットを使用します。", error);
     try {
       await clearStoredSource();
     } catch {
-      // 保存領域が利用できない場合もサンプル問題で続行します。
+      // 保存領域が利用できない場合も既定の問題セットで続行します。
     }
     return null;
   }
