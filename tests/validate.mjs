@@ -7,27 +7,20 @@ import {
 import { convertQuestionMasterData } from "../question-master-adapter.js";
 import { getPreparedAudioPath } from "../question-speech.js";
 
-async function testActiveZoneColor() {
+async function testCalmChoiceDesign() {
   const css = await readFile(new URL("../choice-display-fixes.css", import.meta.url), "utf8");
+  const featureCss = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
   const main = await readFile(new URL("../main.js", import.meta.url), "utf8");
-  const palette = [
-    "rgba(220, 38, 38, 0.62)",
-    "rgba(37, 99, 235, 0.62)",
-    "rgba(22, 163, 74, 0.62)",
-    "rgba(202, 138, 4, 0.62)",
-    "rgba(147, 51, 234, 0.62)",
-    "rgba(8, 145, 178, 0.62)"
-  ];
-  const activeColor = "rgba(71, 85, 105, 0.82)";
 
-  assert.match(css, /\.choice-label\.active\s*\{[^}]*background:\s*rgba\(71, 85, 105, 0\.82\)\s*!important/s);
-  assert.ok(!palette.includes(activeColor), "現在位置の色が選択肢色と重複しています");
-  assert.doesNotMatch(css, /rgba\(255, 0, 200/, "強すぎるマゼンタ色が残っています");
+  assert.match(css, /\.choice-label\.active\s*\{[^}]*background:\s*rgba\(229, 241, 237, 0\.94\)\s*!important/s);
+  assert.match(css, /box-shadow:\s*inset 0 0 0 4px #176b5c/s);
+  assert.doesNotMatch(css, /rgba\(255, 0, 200/, "強いマゼンタ色が回答UIに戻っています");
+  assert.doesNotMatch(featureCss, /choice-color-[1-6][^}]*rgba\(220, 38, 38|rgba\(37, 99, 235|rgba\(147, 51, 234/s, "回答ゾーンに強い多色表現が戻っています");
 
   const styleLoadIndex = main.indexOf("await loadChoiceDisplayFixStyles();");
   const appImportIndex = main.indexOf('await import("./app.js")');
   assert.ok(styleLoadIndex >= 0 && appImportIndex > styleLoadIndex, "回答表示用CSSがapp.jsより後に読み込まれています");
-  console.log("✓ 1. 現在位置は控えめなスレートグレーで、選択肢色と重複しない");
+  console.log("✓ 1. 回答位置はニュートラル面＋単一アクセントで表示");
 }
 
 async function testTwoChoiceBadgeVisibility() {
@@ -48,14 +41,15 @@ async function testTwoChoiceBadgeVisibility() {
   console.log("✓ 2. 2択だけバッジを隠し、3択以上のABC表示は維持");
 }
 
-async function testExplanationVisibility() {
+async function testExplanationDesign() {
   const css = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
 
-  assert.match(css, /\.question-explanation\s*\{[^}]*font-size:\s*clamp\(1\.3rem, 2\.3vw, 1\.85rem\)/s);
-  assert.match(css, /\.question-explanation\s*\{[^}]*border:\s*4px solid #facc15/s);
-  assert.match(css, /\.question-explanation::before\s*\{[^}]*回答の解説/s);
-  assert.match(css, /@keyframes explanation-pop/);
-  console.log("✓ 3. 解説は大文字・強調枠・見出し・表示アニメーション付き");
+  assert.match(css, /\.question-explanation\s*\{[^}]*border-left:\s*4px solid var\(--accent\)/s);
+  assert.match(css, /\.question-explanation\s*\{[^}]*background:\s*var\(--surface\)/s);
+  assert.match(css, /\.question-explanation::before\s*\{[^}]*content:\s*"解説"/s);
+  assert.match(css, /\.question-explanation\s*\{[^}]*animation:\s*none/s);
+  assert.doesNotMatch(css, /#facc15|explanation-pop|0 0 34px/, "旧来の黄色発光・ポップ演出が戻っています");
+  console.log("✓ 3. 解説はマットな通常カード＋左アクセントで表示");
 }
 
 function testPausableClock() {
@@ -95,8 +89,9 @@ async function testTimerUiAndBootOrder() {
   const css = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
   const main = await readFile(new URL("../main.js", import.meta.url), "utf8");
 
-  assert.match(css, /\.answer-timer-value\s*\{[^}]*font-size:\s*clamp\(3\.4rem, 8vw, 5\.8rem\)/s);
+  assert.match(css, /\.answer-timer-value\s*\{[^}]*font-size:\s*clamp\(3\.2rem, 8vw, 5\.4rem\)/s);
   assert.match(css, /\.answer-timer-progress/);
+  assert.match(css, /\.answer-timer-progress > span\s*\{[^}]*background:\s*var\(--accent\)/s);
 
   const installIndex = main.indexOf("installAnswerTimingGuard();");
   const speechClockIndex = main.indexOf("installQuestionSpeechClock();");
@@ -107,7 +102,7 @@ async function testTimerUiAndBootOrder() {
   assert.ok(speechClockIndex > installIndex && appImportIndex > speechClockIndex, "読み上げ用時計がapp.jsより後に初期化されています");
   assert.ok(initializeIndex > appImportIndex, "カウントダウンUIがapp.jsより前に初期化されています");
   assert.ok(speechInitializeIndex > initializeIndex, "問題読み上げがタイマーUIより前に初期化されています");
-  console.log("✓ 4c. 大型残り秒数UIと読み上げ用時計を安全な順序で初期化");
+  console.log("✓ 4c. 読みやすい残り秒数UIと読み上げ用時計を安全な順序で初期化");
 }
 
 async function testQuestionMasterConversion() {
@@ -176,13 +171,31 @@ async function testQuestionSpeechImplementation() {
   console.log("✓ 6. 用意済みMP3を問題・回答後解説で優先し、無い場合だけブラウザ読み上げへフォールバック");
 }
 
-await testActiveZoneColor();
+async function testCalmVisualLanguage() {
+  const styles = await readFile(new URL("../styles.css", import.meta.url), "utf8");
+  const featureCss = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
+  const index = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const combined = `${styles}\n${featureCss}`;
+
+  assert.match(styles, /color-scheme:\s*light/);
+  assert.match(styles, /--accent:\s*#176b5c/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.doesNotMatch(combined, /radial-gradient|backdrop-filter|rgba\(255, 0, 200|0 0 34px/i, "AIデモ風の強い演出がCSSへ戻っています");
+  assert.match(index, /<title>立ち位置クイズ \| AIリテラシー<\/title>/);
+  assert.match(index, /<h1 id="setupTitle">立ち位置クイズ<\/h1>/);
+  assert.match(index, /テーマ：AIリテラシー/);
+  assert.doesNotMatch(index, /カメラAI立ち位置クイズ|高精度人物検出モデル/);
+  console.log("✓ 7. ニュートラルな学習サービスの視覚言語と文言を維持");
+}
+
+await testCalmChoiceDesign();
 await testTwoChoiceBadgeVisibility();
-await testExplanationVisibility();
+await testExplanationDesign();
 testPausableClock();
 testRemainingSecondsParser();
 await testTimerUiAndBootOrder();
 await testQuestionMasterConversion();
 await testQuestionSpeechImplementation();
+await testCalmVisualLanguage();
 
 console.log("All validation checks passed.");
