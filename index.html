@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0b1020" />
+  <meta name="theme-color" content="#f4f6f4" />
   <meta name="referrer" content="no-referrer" />
   <meta
     http-equiv="Content-Security-Policy"
     content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; style-src 'self'; connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com; img-src 'self' data: blob:; media-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; manifest-src 'self'"
   />
-  <title>カメラAI立ち位置クイズ</title>
+  <title>立ち位置クイズ | AIリテラシー</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="question-source.css" />
   <link rel="stylesheet" href="feature-ui.css" />
@@ -35,40 +35,40 @@
 
       <section id="setupPanel" class="setup-panel" aria-labelledby="setupTitle">
         <div class="step-indicator" aria-label="設定手順">
-          <span data-step="title" class="active">1 タイトル</span>
-          <span data-step="difficulty">2 難易度</span>
-          <span data-step="game">3 設定</span>
-          <span data-step="camera">4 カメラ</span>
-          <span data-step="participant">5 参加者</span>
-          <span data-step="answer">6 回答</span>
+          <span data-step="title" class="active">はじめる</span>
+          <span data-step="difficulty">難易度</span>
+          <span data-step="game">問題設定</span>
+          <span data-step="camera">カメラ</span>
+          <span data-step="participant">参加者</span>
+          <span data-step="answer">回答方法</span>
         </div>
 
         <div id="titleStep" class="setup-step title-step start-step">
-          <p class="eyebrow">AIリテラシークイズ</p>
-          <h1 id="setupTitle">カメラAI立ち位置クイズ</h1>
-          <p>立つ場所で答える、写真・音声にも対応したブラウザ内完結型のAIクイズです。</p>
+          <p class="eyebrow">テーマ：AIリテラシー</p>
+          <h1 id="setupTitle">立ち位置クイズ</h1>
+          <p>立つ場所で答える参加型クイズです。身近な事例から、AIとの付き合い方を楽しく学べます。</p>
           <div class="title-actions">
-            <button id="showDifficultyButton" class="primary-button large-button" type="button">スタート</button>
+            <button id="showDifficultyButton" class="primary-button large-button" type="button">クイズをはじめる</button>
           </div>
           <p class="local-only-note">カメラ映像、選択したJSON、音声・画像の再生処理はブラウザ内で扱います。</p>
         </div>
 
         <div id="difficultyStep" class="setup-step difficulty-step start-step" hidden>
-          <p class="eyebrow">難易度選択</p>
+          <p class="eyebrow">難易度</p>
           <h1>遊ぶ問題を選んでください</h1>
-          <p>アップロードされた問題一覧の「子供向け」「大人向け」列を使って絞り込みます。</p>
+          <p>参加する人に合わせて、出題する問題の難しさを選べます。</p>
           <div class="difficulty-grid">
             <button class="difficulty-card" type="button" data-difficulty-choice="kids">
               <strong>子ども向け</strong>
-              <span>〇×中心で、やさしいAIの基礎問題</span>
+              <span>〇×を中心に、AIの基本をやさしく学びます。</span>
             </button>
             <button class="difficulty-card" type="button" data-difficulty-choice="adults">
               <strong>大人向け</strong>
-              <span>用語、著作権、セキュリティを含む実践問題</span>
+              <span>著作権やセキュリティなど、実生活に近いテーマを扱います。</span>
             </button>
             <button class="difficulty-card" type="button" data-difficulty-choice="all">
               <strong>すべて</strong>
-              <span>子ども向け・大人向けをまとめて出題</span>
+              <span>子ども向け・大人向けをまとめて出題します。</span>
             </button>
           </div>
           <div class="form-row centered-row">
@@ -77,9 +77,9 @@
         </div>
 
         <div id="gameStep" class="setup-step start-step" hidden>
-          <p class="eyebrow">ゲーム設定</p>
+          <p class="eyebrow">問題設定</p>
           <h1>出題内容を設定</h1>
-          <p>問題ファイル、出題数、最大点を設定してからカメラを選択します。</p>
+          <p>使う問題、出題数、点数を決めてからカメラ設定へ進みます。</p>
 
           <section class="question-source-panel" aria-labelledby="questionSourceTitle">
             <h2 id="questionSourceTitle">問題ファイル</h2>
@@ -119,8 +119,9 @@
         </div>
 
         <div id="cameraStep" class="setup-step" hidden>
+          <p class="eyebrow">カメラ</p>
           <h1>使用するカメラを選択</h1>
-          <p>カメラ一覧を取得し、使用するカメラを選んで確定してください。</p>
+          <p>回答位置を確認するために使うカメラを選んでください。</p>
           <div class="form-row">
             <button id="scanCamerasButton" class="secondary-button" type="button">カメラ一覧を取得</button>
             <select id="cameraSelect" aria-label="使用するカメラ" disabled>
@@ -130,22 +131,24 @@
           </div>
           <p id="cameraStatus" class="setup-status">ブラウザのカメラ利用を許可してください。</p>
           <div class="form-row">
-            <button id="backToGameButton" class="secondary-button" type="button">ゲーム設定へ戻る</button>
+            <button id="backToGameButton" class="secondary-button" type="button">問題設定へ戻る</button>
           </div>
         </div>
 
         <div id="participantStep" class="setup-step" hidden>
+          <p class="eyebrow">参加者</p>
           <h1>参加者を登録</h1>
-          <p>画面上の丸い番号をクリックし、参加者を確定してください。全身が映っていなくても登録できます。</p>
+          <p>画面上の丸い番号から、クイズに参加する人を選んでください。全身が映っていなくても登録できます。</p>
           <div class="form-row">
             <button id="confirmParticipantButton" class="primary-button" type="button" disabled>この人を参加者に決定</button>
             <button id="backToCameraButton" class="secondary-button" type="button">カメラを選び直す</button>
           </div>
-          <p id="participantStatus" class="setup-status">人物を検出しています…</p>
+          <p id="participantStatus" class="setup-status">人物を確認しています…</p>
         </div>
 
         <div id="answerStep" class="setup-step" hidden>
-          <h1>回答の確定方法</h1>
+          <p class="eyebrow">回答方法</p>
+          <h1>回答の確定方法を選択</h1>
           <label class="mode-option">
             <input type="radio" name="answerMode" value="timer" checked />
             <span><strong>時間で確定</strong><small>同じ回答エリアに一定時間立つと確定します。</small></span>
@@ -159,15 +162,15 @@
             <input id="holdDurationInput" type="number" min="0.5" max="10" step="0.1" value="1.2" />
           </label>
           <div class="form-row">
-            <button id="startQuizButton" class="primary-button" type="button">クイズを開始</button>
+            <button id="startQuizButton" class="primary-button" type="button">音声案内を聞いて開始</button>
             <button id="backToParticipantButton" class="secondary-button" type="button">参加者を選び直す</button>
           </div>
         </div>
       </section>
 
       <section id="endScreen" class="end-screen" aria-labelledby="endTitle" hidden>
-        <p class="eyebrow">クイズ終了</p>
-        <h1 id="endTitle">おつかれさまでした！</h1>
+        <p class="eyebrow">結果</p>
+        <h1 id="endTitle">おつかれさまでした</h1>
         <div class="final-score"><strong id="finalScore">0</strong><span id="finalMaxScore">/ 0 pt</span></div>
         <p id="finalCorrectCount">0問中0問正解</p>
         <div class="form-row centered-row">
@@ -188,9 +191,9 @@
     </section>
 
     <aside id="helpPanel" class="help-panel">
-      <h2>遊び方</h2>
-      <p>タイトル画面から難易度を選び、問題ファイル、出題数、最大点、カメラ、参加者、回答方法を設定します。</p>
-      <p>クイズ中は登録した1人だけを高精度人物検出モデルで追跡・採点します。上半身だけでも動作します。</p>
+      <h2>遊び方とプライバシー</h2>
+      <p>難易度と問題数を決め、カメラで参加者を選ぶと準備完了です。クイズ中は、選んだ参加者の立ち位置を確認して回答を採点します。</p>
+      <p>問題と解説は音声でも案内します。音声が使えない環境でも、画面の文章だけで内容を確認できます。</p>
       <p class="privacy-note">映像、選択したJSON、画像、MP3音声はブラウザ内だけで処理され、サーバーには送信しません。</p>
     </aside>
   </main>
