@@ -1,0 +1,137 @@
+/*
+ * 2026-08-12 UI stability pass
+ * - 問題文の動的縮小を使わず、読みやすい固定レスポンシブサイズで表示
+ * - 回答文を省略しない
+ * - 黄色の上辺アクセントをやめ、薄い全周枠へ統一
+ */
+
+:root {
+  --panel-outline: #c7cdd7;
+  --panel-outline-strong: #8f99aa;
+  --panel-soft: rgba(255, 253, 248, 0.96);
+  --active-outline: #65738a;
+}
+
+/* 問題文は自動縮小せず、以前に近いサイズで自然に改行する。 */
+.question-card {
+  min-height: 86px;
+  border: 1px solid rgba(23, 32, 51, 0.24) !important;
+  background: var(--panel-soft);
+}
+
+.question-card h1,
+.question-card h1.question-wrap-fallback {
+  display: block !important;
+  width: 100%;
+  margin-top: 6px;
+  overflow: visible !important;
+  font-size: clamp(1.25rem, 2.55vw, 2.2rem) !important;
+  line-height: 1.34;
+  white-space: normal !important;
+  -webkit-box-orient: initial !important;
+  -webkit-line-clamp: unset !important;
+}
+
+#questionCounter {
+  border: 1px solid var(--panel-outline);
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* 設定・結果カードも上辺だけを強調せず、薄い矩形枠で囲む。 */
+.setup-panel,
+.end-screen,
+.setup-panel.participant-mode {
+  border: 1px solid var(--panel-outline-strong) !important;
+}
+
+.theme-badge {
+  border: 1px solid var(--panel-outline);
+  background: #f6f7f9 !important;
+}
+
+.step-indicator span.active {
+  border-bottom-color: var(--panel-outline-strong) !important;
+}
+
+.game-settings-grid label,
+.difficulty-card,
+.difficulty-card:nth-child(2),
+.difficulty-card:nth-child(3) {
+  border: 1px solid var(--panel-outline) !important;
+}
+
+.mode-option:has(input:checked) {
+  border: 1px solid var(--panel-outline-strong) !important;
+  background: #f6f7f9 !important;
+  box-shadow: inset 0 0 0 1px rgba(23, 32, 51, 0.08) !important;
+}
+
+/* 回答欄は全文を表示する。省略記号は使わない。 */
+.choice-label {
+  gap: 6px;
+  border: 1px solid rgba(23, 32, 51, 0.22) !important;
+  font-size: clamp(1.05rem, 2vw, 1.65rem);
+  line-height: 1.28;
+}
+
+.choice-text {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.choice-color-1 { border-color: rgba(185, 78, 72, 0.34) !important; background: rgba(255, 242, 240, 0.92) !important; }
+.choice-color-2 { border-color: rgba(72, 111, 176, 0.34) !important; background: rgba(240, 245, 255, 0.92) !important; }
+.choice-color-3 { border-color: rgba(103, 94, 153, 0.30) !important; background: rgba(246, 244, 252, 0.92) !important; }
+.choice-color-4 { border-color: rgba(58, 126, 103, 0.30) !important; background: rgba(240, 248, 244, 0.92) !important; }
+.choice-color-5 { border-color: rgba(181, 109, 52, 0.30) !important; background: rgba(252, 246, 240, 0.92) !important; }
+.choice-color-6 { border-color: rgba(92, 104, 126, 0.30) !important; background: rgba(244, 246, 249, 0.92) !important; }
+
+#stage .choice-label.active {
+  background: rgba(248, 249, 251, 0.98) !important;
+  box-shadow: inset 0 0 0 3px rgba(101, 115, 138, 0.72) !important;
+}
+
+/* 解説・タイマー・音声も黄色の上辺/枠を使わない。 */
+.quiz-feedback-panel {
+  border: 1px solid rgba(23, 32, 51, 0.30) !important;
+}
+
+.answer-timer-panel,
+.answer-timer-panel[data-mode="audio-loading"],
+.answer-timer-panel[data-mode="audio-waiting"],
+.answer-timer-panel[data-mode="audio-playing"],
+.answer-timer-panel[data-mode="ready"],
+.answer-timer-panel[data-mode="counting"],
+.answer-timer-panel[data-mode="confirming"] {
+  border: 1px solid rgba(255, 255, 255, 0.56) !important;
+}
+
+.answer-timer-progress > span {
+  background: #aab5c5 !important;
+}
+
+#systemAudioPanel {
+  border: 1px solid rgba(255, 255, 255, 0.56) !important;
+}
+
+.round-transition-kicker {
+  color: #cbd3df !important;
+}
+
+@media (max-width: 760px) {
+  .question-card h1,
+  .question-card h1.question-wrap-fallback {
+    font-size: clamp(1.15rem, 4.7vw, 1.65rem) !important;
+  }
+
+  .choice-label {
+    font-size: clamp(0.98rem, 3.6vw, 1.3rem);
+    padding-inline: 7px;
+  }
+}
