@@ -1,8 +1,9 @@
 /*
- * 2026-08-12 UI stability pass
+ * 2026-08-12 UI stability + answer state pass
  * - 問題文の動的縮小を使わず、読みやすい固定レスポンシブサイズで表示
  * - 回答文を省略しない
  * - 黄色の上辺アクセントをやめ、薄い全周枠へ統一
+ * - 回答中は現在位置を面全体で強調し、採点後は正解だけを強調
  */
 
 :root {
@@ -66,10 +67,12 @@
   box-shadow: inset 0 0 0 1px rgba(23, 32, 51, 0.08) !important;
 }
 
-/* 回答欄は全文を表示する。省略記号は使わない。 */
+/* 回答欄は全文を表示し、通常時は上辺だけで回答色を示す。 */
 .choice-label {
   gap: 6px;
-  border: 1px solid rgba(23, 32, 51, 0.22) !important;
+  border: 1px solid rgba(23, 32, 51, 0.20) !important;
+  border-top: 6px solid var(--choice-color, #9ca5b4) !important;
+  background: rgba(255, 253, 248, 0.88) !important;
   font-size: clamp(1.05rem, 2vw, 1.65rem);
   line-height: 1.28;
 }
@@ -85,23 +88,64 @@
   word-break: normal;
 }
 
-.choice-color-1 { border-color: rgba(185, 78, 72, 0.34) !important; background: rgba(255, 242, 240, 0.92) !important; }
-.choice-color-2 { border-color: rgba(72, 111, 176, 0.34) !important; background: rgba(240, 245, 255, 0.92) !important; }
-.choice-color-3 { border-color: rgba(103, 94, 153, 0.30) !important; background: rgba(246, 244, 252, 0.92) !important; }
-.choice-color-4 { border-color: rgba(58, 126, 103, 0.30) !important; background: rgba(240, 248, 244, 0.92) !important; }
-.choice-color-5 { border-color: rgba(181, 109, 52, 0.30) !important; background: rgba(252, 246, 240, 0.92) !important; }
-.choice-color-6 { border-color: rgba(92, 104, 126, 0.30) !important; background: rgba(244, 246, 249, 0.92) !important; }
+.choice-color-1 { --choice-color: #b94e48; --choice-fill: rgba(255, 229, 226, 0.97); }
+.choice-color-2 { --choice-color: #486fb0; --choice-fill: rgba(226, 236, 255, 0.97); }
+.choice-color-3 { --choice-color: #675e99; --choice-fill: rgba(235, 231, 250, 0.97); }
+.choice-color-4 { --choice-color: #3a7e67; --choice-fill: rgba(226, 244, 236, 0.97); }
+.choice-color-5 { --choice-color: #b56d34; --choice-fill: rgba(250, 234, 219, 0.97); }
+.choice-color-6 { --choice-color: #5c687e; --choice-fill: rgba(231, 235, 241, 0.97); }
 
+/* 回答中：自分が立っている位置は、その回答色で面全体を塗って明確にする。 */
 #stage .choice-label.active {
-  background: rgba(248, 249, 251, 0.98) !important;
-  box-shadow: inset 0 0 0 3px rgba(101, 115, 138, 0.72) !important;
+  border: 3px solid var(--choice-color, var(--active-outline)) !important;
+  background: var(--choice-fill, rgba(238, 241, 246, 0.98)) !important;
+  box-shadow: inset 0 0 0 2px var(--choice-color, var(--active-outline)) !important;
 }
 
-/* 解説・タイマー・音声も黄色の上辺/枠を使わない。 */
+#stage .choice-label.active .choice-badge {
+  border-color: var(--choice-color, var(--active-outline)) !important;
+  background: var(--choice-color, var(--active-outline)) !important;
+  color: #fff !important;
+}
+
+/* 採点後：現在位置や不正解位置は残さず、正解位置だけを同じルールで強調する。 */
+#stage .choice-label.correct {
+  border: 3px solid var(--choice-color, var(--active-outline)) !important;
+  background: var(--choice-fill, rgba(238, 241, 246, 0.98)) !important;
+  box-shadow: inset 0 0 0 2px var(--choice-color, var(--active-outline)) !important;
+}
+
+#stage .choice-label.correct .choice-badge {
+  border-color: var(--choice-color, var(--active-outline)) !important;
+  background: var(--choice-color, var(--active-outline)) !important;
+  color: #fff !important;
+}
+
+#stage .choice-label.wrong {
+  border: 1px solid rgba(23, 32, 51, 0.20) !important;
+  border-top: 6px solid var(--choice-color, #9ca5b4) !important;
+  background: rgba(255, 253, 248, 0.88) !important;
+  box-shadow: none !important;
+}
+
+/* 解説は問題文に近い文字サイズまで上げる。 */
 .quiz-feedback-panel {
+  max-height: 154px !important;
   border: 1px solid rgba(23, 32, 51, 0.30) !important;
 }
 
+.question-explanation {
+  font-size: clamp(1.25rem, 2.35vw, 2.05rem) !important;
+  line-height: 1.35 !important;
+}
+
+/* 「正解」「残念」の結果メッセージも周囲と同じ中立枠にする。 */
+.message {
+  border: 1px solid rgba(23, 32, 51, 0.30) !important;
+  background: rgba(255, 253, 248, 0.97) !important;
+}
+
+/* 解説・タイマー・音声も黄色の上辺/枠を使わない。 */
 .answer-timer-panel,
 .answer-timer-panel[data-mode="audio-loading"],
 .answer-timer-panel[data-mode="audio-waiting"],
@@ -133,5 +177,13 @@
   .choice-label {
     font-size: clamp(0.98rem, 3.6vw, 1.3rem);
     padding-inline: 7px;
+  }
+
+  .quiz-feedback-panel {
+    max-height: 132px !important;
+  }
+
+  .question-explanation {
+    font-size: clamp(1.15rem, 4.7vw, 1.65rem) !important;
   }
 }
