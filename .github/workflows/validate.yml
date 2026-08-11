@@ -7,6 +7,7 @@ on:
       - main
       - "fix/**"
       - "feature/**"
+      - "agent/**"
 
 permissions:
   contents: read
@@ -34,6 +35,7 @@ jobs:
           node --check question-source.js
           node --check question-speech.js
           node --check quiz-media.js
+          node --check quiz-show-ui.js
           node --check system-audio-flow.js
           node --check voicevox-credit.js
 
