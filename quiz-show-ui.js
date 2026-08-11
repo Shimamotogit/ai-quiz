@@ -1,5 +1,4 @@
-const QUESTION_FONT_MAX = 32;
-const QUESTION_FONT_MIN = 17;
+const DEFAULT_MAX_SCORE = 100;
 const observedStatusNodes = new WeakSet();
 
 let transitionPanel = null;
@@ -145,29 +144,29 @@ function handleRestart(event) {
   });
 }
 
-function fitQuestionText() {
-  const questionText = document.querySelector("#questionText");
-  const questionCard = document.querySelector("#questionCard");
-  if (!questionText || !questionCard || questionCard.hidden) return;
+function applyDefaultMaxScore() {
+  const input = document.querySelector("#maxScoreInput");
+  if (!input) return;
 
-  questionText.classList.remove("question-wrap-fallback");
-  questionText.style.whiteSpace = "nowrap";
-
-  const viewportMax = window.innerWidth <= 760 ? 23 : QUESTION_FONT_MAX;
-  let size = viewportMax;
-  questionText.style.fontSize = `${size}px`;
-
-  const available = questionText.clientWidth;
-  if (available <= 0) return;
-
-  while (questionText.scrollWidth > available && size > QUESTION_FONT_MIN) {
-    size -= 1;
-    questionText.style.fontSize = `${size}px`;
+  const value = Number(input.value);
+  if (input.dataset.defaultScoreAdjusted === "true" && value !== 500 && value !== 1000) return;
+  if (value === DEFAULT_MAX_SCORE) {
+    input.dataset.defaultScoreAdjusted = "true";
+    return;
   }
 
-  if (questionText.scrollWidth > available) {
-    questionText.classList.add("question-wrap-fallback");
+  // 旧デフォルト値だけを100へ置換し、利用者が入力した値は上書きしない。
+  if (value === 500 || value === 1000 || !Number.isFinite(value)) {
+    input.value = String(DEFAULT_MAX_SCORE);
+    input.dataset.defaultScoreAdjusted = "true";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
   }
+}
+
+function installDefaultMaxScore() {
+  applyDefaultMaxScore();
+  window.requestAnimationFrame(applyDefaultMaxScore);
+  window.setTimeout(applyDefaultMaxScore, 250);
 }
 
 function compactQuestionSpeechStatus(text) {
@@ -240,24 +239,6 @@ function installStatusCompaction() {
   attachDynamicNodes();
 }
 
-function installQuestionFit() {
-  const questionText = document.querySelector("#questionText");
-  const questionCard = document.querySelector("#questionCard");
-  if (!questionText || !questionCard) return;
-
-  const requestFit = () => window.requestAnimationFrame(fitQuestionText);
-  const observer = new MutationObserver(requestFit);
-  observer.observe(questionText, { childList: true, characterData: true, subtree: true });
-  observer.observe(questionCard, { attributes: true, attributeFilter: ["hidden"] });
-
-  if (typeof ResizeObserver !== "undefined") {
-    const resizeObserver = new ResizeObserver(requestFit);
-    resizeObserver.observe(questionCard);
-  }
-  window.addEventListener("resize", requestFit);
-  requestFit();
-}
-
 function installTransitionObservers() {
   const stage = document.querySelector("#stage");
   if (!stage) return;
@@ -273,8 +254,8 @@ function installTransitionObservers() {
 
 export function initializeQuizShowUI() {
   ensureTransitionPanel();
+  installDefaultMaxScore();
   installStatusCompaction();
-  installQuestionFit();
   installTransitionObservers();
 
   document.querySelector("#startQuizButton")?.addEventListener("click", handleInitialStart, { capture: true });
