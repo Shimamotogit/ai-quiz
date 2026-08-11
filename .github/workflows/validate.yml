@@ -35,8 +35,10 @@ jobs:
           node --check question-speech.js
           node --check quiz-media.js
           node --check system-audio-flow.js
+          node --check voicevox-credit.js
 
       - name: Run focused validation tests
         run: |
           node tests/validate.mjs
           node tests/system-audio-flow.mjs
+          node tests/audio-license.mjs
