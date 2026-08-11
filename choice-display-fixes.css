@@ -17,3 +17,17 @@
 .choice-labels:has(> .choice-label:nth-child(2):last-child) .choice-label {
   gap: 0;
 }
+
+/* ID指定のdisplayルールよりhiddenを優先し、終了した音声パネルを確実に消す。 */
+#systemAudioPanel[hidden] {
+  display: none !important;
+}
+
+/* VOICEVOXクレジットは必要だが、ずんだもん由来の緑をブランド色にはしない。 */
+.local-only-note {
+  color: #656a76 !important;
+}
+
+.local-only-note a {
+  color: #30476f !important;
+}
