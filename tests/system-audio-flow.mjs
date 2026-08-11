@@ -5,6 +5,7 @@ import {
   getGradeSystemCue,
   getQuestionCountCue
 } from "../system-audio-flow.js";
+import { rewriteSystemAudioSource } from "../system-audio-alias.js";
 
 function testAnswerCues() {
   assert.deepEqual(
@@ -32,6 +33,15 @@ function testCountCues() {
 function testGradeThreshold() {
   assert.equal(getGradeSystemCue(6, 10).filename, "とても良い結果です！.mp3");
   assert.equal(getGradeSystemCue(5, 10).filename, "いい成績です.mp3");
+
+  const rewritten = rewriteSystemAudioSource(
+    "https://example.test/音声データ_MP3/01.システム/いい成績です.mp3",
+    "https://example.test/"
+  );
+  assert.equal(
+    decodeURIComponent(new URL(rewritten).pathname),
+    "/音声データ_MP3/01.システム/素晴らしい成績です！.mp3"
+  );
 }
 
 function testResultSequence() {
