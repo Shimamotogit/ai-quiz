@@ -4,6 +4,7 @@ const MAX_MEDIA_PATH_LENGTH = 240;
 
 let questionData = [];
 let lastMediaKey = "";
+let feedbackPanel = null;
 
 function normalizeChoiceText(value) {
   return String(value ?? "")
@@ -52,6 +53,41 @@ function createMediaNotice(text) {
   node.className = "media-notice";
   node.textContent = text;
   return node;
+}
+
+function ensureFeedbackPanel() {
+  if (feedbackPanel?.isConnected) return feedbackPanel;
+  const stage = document.querySelector("#stage");
+  if (!stage) return null;
+
+  feedbackPanel = document.createElement("section");
+  feedbackPanel.id = "quizFeedbackPanel";
+  feedbackPanel.className = "quiz-feedback-panel";
+  feedbackPanel.setAttribute("aria-live", "polite");
+  feedbackPanel.hidden = true;
+  stage.append(feedbackPanel);
+  return feedbackPanel;
+}
+
+function renderFeedback(question, showExplanation) {
+  const panel = ensureFeedbackPanel();
+  if (!panel) return;
+
+  const explanationText = typeof question?.explanation === "string"
+    ? question.explanation.trim()
+    : "";
+
+  if (!showExplanation || !explanationText) {
+    panel.replaceChildren();
+    panel.hidden = true;
+    return;
+  }
+
+  const explanation = document.createElement("p");
+  explanation.className = "question-explanation";
+  explanation.textContent = explanationText;
+  panel.replaceChildren(explanation);
+  panel.hidden = false;
 }
 
 function renderQuestionMedia(question, showExplanation = false) {
@@ -112,15 +148,9 @@ function renderQuestionMedia(question, showExplanation = false) {
     nodes.push(audioBox);
   }
 
-  if (showExplanation && typeof question?.explanation === "string" && question.explanation.trim()) {
-    const explanation = document.createElement("p");
-    explanation.className = "question-explanation";
-    explanation.textContent = question.explanation.trim();
-    nodes.push(explanation);
-  }
-
   container.hidden = nodes.length === 0;
   container.replaceChildren(...nodes);
+  renderFeedback(question, showExplanation);
 }
 
 function shouldShowExplanation() {
@@ -177,6 +207,14 @@ function decorateChoiceLabels() {
   });
 }
 
+function moveQuestionMediaToStage() {
+  const stage = document.querySelector("#stage");
+  const container = document.querySelector("#questionMedia");
+  if (stage && container && container.parentElement !== stage) {
+    stage.append(container);
+  }
+}
+
 async function loadQuestionData() {
   const response = await fetch("questions.json", { cache: "no-store" });
   if (!response.ok) throw new Error(`問題データを読み込めませんでした (${response.status})`);
@@ -191,6 +229,9 @@ export async function initializeQuizMedia() {
     console.error(error);
     questionData = [];
   }
+
+  moveQuestionMediaToStage();
+  ensureFeedbackPanel();
 
   const questionText = document.querySelector("#questionText");
   const choiceLabels = document.querySelector("#choiceLabels");
