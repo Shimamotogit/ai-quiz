@@ -104,6 +104,12 @@ function drainSystemAudioNow() {
 
 function beginSystemAudioDrain() {
   drainingSystemAudio = true;
+  if (drainSafetyTimer) window.clearTimeout(drainSafetyTimer);
+  drainSafetyTimer = window.setTimeout(() => {
+    drainingSystemAudio = false;
+    drainSafetyTimer = null;
+  }, 5000);
+
   document.querySelectorAll("#stage audio").forEach((audio) => {
     if (audio.closest("#systemAudioPanel")) abortSystemAudio(audio);
     else {
@@ -122,11 +128,6 @@ function beginSystemAudioDrain() {
   }
 
   drainSystemAudioNow();
-  if (drainSafetyTimer) window.clearTimeout(drainSafetyTimer);
-  drainSafetyTimer = window.setTimeout(() => {
-    drainingSystemAudio = false;
-    drainSafetyTimer = null;
-  }, 5000);
 }
 
 function hideQuizForIntro() {
@@ -178,7 +179,7 @@ function handleReturnToTitleClick(event) {
   hideStartTransition();
   beginSystemAudioDrain();
 
-  // 音声ガードより利用者の「タイトルへ戻る」を優先する。
+  // 結果音声を含む進行中の処理より、利用者の「タイトルへ戻る」を優先する。
   window.location.reload();
 }
 
@@ -242,9 +243,25 @@ function ensureGuideOverlay() {
   return overlay;
 }
 
+function ensureGuideButton() {
+  let button = document.querySelector("#showGuideImageButton");
+  if (button) return button;
+
+  const actions = document.querySelector("#titleStep .title-actions");
+  if (!actions) return null;
+  button = document.createElement("button");
+  button.id = "showGuideImageButton";
+  button.className = "secondary-button large-button";
+  button.type = "button";
+  button.textContent = "説明画像を表示";
+  actions.append(button);
+  return button;
+}
+
 function installGuideButton() {
-  const button = document.querySelector("#showGuideImageButton");
-  if (!button) return;
+  const button = ensureGuideButton();
+  if (!button || button.dataset.guideImageBound === "true") return;
+  button.dataset.guideImageBound = "true";
   button.disabled = false;
   button.addEventListener("click", () => {
     const overlay = ensureGuideOverlay();
@@ -281,12 +298,21 @@ function installStageObserver() {
   });
 }
 
+function installGuideKeyboardClose() {
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    const overlay = document.querySelector("#guideImageOverlay");
+    if (overlay && !overlay.hidden) overlay.hidden = true;
+  });
+}
+
 export function initializeNavigationPriority() {
   if (initialized) return;
   initialized = true;
   loadNavigationStyles();
   ensureGuideOverlay();
   installGuideButton();
+  installGuideKeyboardClose();
   installStageObserver();
 
   document.querySelector("#startQuizButton")?.addEventListener("click", handleStartClick, { capture: true });
