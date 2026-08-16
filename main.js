@@ -1,5 +1,5 @@
-import { configureQuestionDifficulty } from "./difficulty-filter.js";
-import { initializeQuestionSource } from "./question-source.js";
+import { configureQuestionDifficulty } from "./difficulty-filter.js?v=2";
+import { initializeQuestionSource } from "./question-source.js?v=2";
 import {
   initializeLaunchFlow,
   installReturnToTitleHandler
@@ -15,11 +15,14 @@ import {
 import { initializeSystemAudioFlow } from "./system-audio-flow.js";
 import { installSystemAudioAlias } from "./system-audio-alias.js";
 import { installVoicevoxCredit } from "./voicevox-credit.js";
-import { initializeQuizShowUI } from "./quiz-show-ui.js";
+import { initializeQuizShowUI } from "./quiz-show-ui.js?v=2";
 import { initializeAnswerVisualState } from "./answer-visual-state.js?v=2";
-import { initializeQuizDefaults } from "./quiz-defaults.js?v=1";
+import { initializeQuizDefaults } from "./quiz-defaults.js?v=2";
 import { initializeQuizPresentation } from "./quiz-presentation.js?v=1";
-import { initializeNavigationPriority } from "./navigation-priority.js?v=4";
+import {
+  initializeGuideImageSupport,
+  initializeNavigationPriority
+} from "./navigation-priority.js?v=5";
 
 async function loadChoiceDisplayFixStyles() {
   const existing = document.querySelector('link[data-choice-display-fixes="true"]');
@@ -68,9 +71,8 @@ installQuestionSpeechClock();
 installSystemAudioAlias();
 installVoicevoxCredit();
 
-// タイトル画面の説明画像ボタンは、難易度選択を待たずページ表示直後から有効にする。
-// 終了画面・再スタート・タイトル戻りの優先制御も、既存の音声ガードより先に登録する。
-initializeNavigationPriority();
+// 説明画像だけは、難易度選択を待たずタイトル表示直後から利用可能にする。
+initializeGuideImageSupport();
 
 await loadChoiceDisplayFixStyles();
 await loadCountdownNeutralStyles();
@@ -78,8 +80,9 @@ await initializeQuestionSource();
 const launchOptions = await initializeLaunchFlow();
 configureQuestionDifficulty(launchOptions.difficulty);
 
-// ユーザーの最初のスタート操作で全画面要求を出せるよう、音声ガードより先に登録する。
+// 全画面要求は実ユーザー操作が必要なので、stopImmediatePropagationするナビゲーション制御より先に登録する。
 initializeQuizPresentation(launchOptions.difficulty);
+initializeNavigationPriority();
 
 await import("./detector-compat.js");
 await import("./app.js");

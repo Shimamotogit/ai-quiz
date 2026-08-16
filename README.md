@@ -47,7 +47,7 @@ python3 -m http.server 8080
 
 ## ゲームの流れ
 
-1. タイトル画面で「スタート」を押します。
+1. タイトル画面で「クイズをはじめる」を押します。
 2. 難易度を選択します。
 3. 必要に応じてJSONファイルを選択します。
 4. 出題数と最大点を設定します。
@@ -108,16 +108,16 @@ python3 -m http.server 8080
 
 ## 従来のJSON形式
 
-従来形式も引き続き利用できます。
+従来形式も引き続き利用できます。設定を省略した場合、回答確定時間は10秒、最大点数は100点が既定です。有効な値を明示した場合は、その値を優先します。
 
 ```json
 {
   "settings": {
-    "holdDurationMs": 1200,
+    "holdDurationMs": 10000,
     "resultDisplayMs": 1300,
     "spaceCountdownSeconds": 3,
     "defaultQuestionCount": 10,
-    "defaultMaxScore": 1000
+    "defaultMaxScore": 100
   },
   "questions": [
     {
@@ -129,6 +129,7 @@ python3 -m http.server 8080
       "image": "images/sample-ai-photo-question.svg",
       "imageAlt": "生成AI判定クイズ用のサンプル画像",
       "audio": "audio/sample-question.mp3",
+      "explanationAudio": "audio/sample-explanation.mp3",
       "explanation": "採点後に表示する補足コメント"
     }
   ]
@@ -140,7 +141,8 @@ python3 -m http.server 8080
 - `difficulty`：`kids`、`adults`、`all`
 - `image`：同一サイト内の相対パス。`.png`、`.jpg`、`.jpeg`、`.webp`、`.gif`、`.svg`
 - `imageAlt`：画像の説明
-- `audio`：同一サイト内のMP3相対パス。`.mp3`
+- `audio`：問題読み上げに使う同一サイト内のMP3相対パス。`.mp3`
+- `explanationAudio`：採点後の解説に使う同一サイト内のMP3相対パス。`.mp3`
 - `explanation`：採点後に表示する補足コメント
 
 ## 問題読み上げと制限時間
@@ -160,7 +162,9 @@ python3 -m http.server 8080
 
 ## MP3音声との互換
 
-問題音声は `音声データ_MP3/02.問題/`、採点後の補足説明音声は `音声データ_MP3/03.問題_補足説明/`、開始・回答結果・終了などのシステム音声は `音声データ_MP3/01.システム/` を利用します。従来形式の問題に `audio` が明示されている場合は、その同一サイト内MP3も利用できます。
+組み込み問題の問題音声は `音声データ_MP3/02.問題/`、採点後の補足説明音声は `音声データ_MP3/03.問題_補足説明/`、開始・回答結果・終了などのシステム音声は `音声データ_MP3/01.システム/` を利用します。
+
+ローカルJSONでは、問題ごとに `audio` または `explanationAudio` が明示されている場合だけ、その同一サイト内MP3を利用します。ローカル問題のIDが `Q001` のような組み込み問題と同じ形式でも、組み込み連番MP3へ自動対応はしません。音声が明示されていない場合はブラウザ読み上げへフォールバックします。
 
 ## VOICEVOX:ずんだもん 音声の利用条件
 
@@ -208,6 +212,15 @@ VOICEVOX の規約では、生成音声を他者に利用させる場合、そ�
 ├── question-speech.js
 ├── quiz-media.js
 ├── answer-timer-feedback.js
+├── answer-visual-state.js
+├── quiz-defaults.js
+├── quiz-presentation.js
+├── quiz-presentation.css
+├── quiz-show-ui.js
+├── navigation-priority.js
+├── navigation-priority.css
+├── system-audio-flow.js
+├── system-audio-alias.js
 ├── detector-compat.js
 ├── app.js
 ├── questions.json

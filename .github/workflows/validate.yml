@@ -52,3 +52,4 @@ jobs:
           node tests/quiz-presentation.mjs
           node tests/system-audio-flow.mjs
           node tests/audio-license.mjs
+          node tests/static-review.mjs

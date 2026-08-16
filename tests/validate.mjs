@@ -6,6 +6,7 @@ import {
 } from "../answer-timer-feedback.js";
 import { convertQuestionMasterData } from "../question-master-adapter.js";
 import { getPreparedAudioPath } from "../question-speech.js";
+import { normalizeDefaultMaxScore } from "../quiz-show-ui.js";
 
 async function testQuizChoiceDesign() {
   const css = await readFile(new URL("../choice-display-fixes.css", import.meta.url), "utf8");
@@ -146,13 +147,16 @@ async function testStableTextAndDefaultScore() {
   assert.match(uiFixes, /\.choice-text\s*\{[\s\S]*overflow-wrap:\s*anywhere/);
   assert.doesNotMatch(uiFixes, /text-overflow:\s*ellipsis/i, "回答文を省略する指定が追加されています");
   assert.match(flow, /const DEFAULT_MAX_SCORE = 100;/);
-  assert.match(flow, /value === 500 \|\| value === 1000/);
+  assert.equal(normalizeDefaultMaxScore(500, 5), 500, "明示した500点を旧既定値扱いしてはいけません");
+  assert.equal(normalizeDefaultMaxScore(1000, 5), 1000, "明示した1000点を旧既定値扱いしてはいけません");
+  assert.equal(normalizeDefaultMaxScore(Number.NaN, 5), 100, "無効な最大点数は100点へ補正する必要があります");
+  assert.doesNotMatch(flow, /value === 500 \|\| value === 1000/, "有効な500/1000点を旧既定値として強制上書きする処理が残っています");
   assert.match(index, /id="maxScoreInput"[^>]*value="100"/);
 
   const featureIndex = index.indexOf('href="feature-ui.css"');
   const fixesIndex = index.indexOf('href="ui-stability-fixes.css"');
   assert.ok(featureIndex >= 0 && fixesIndex > featureIndex, "安定表示CSSがfeature-ui.cssより前に読み込まれています");
-  console.log("✓ 6. 問題文・回答文を安定表示し、最大点数の初期値は100");
+  console.log("✓ 6. 問題文・回答文を安定表示し、最大点数の既定100と明示値尊重を検証");
 }
 
 async function testQuestionMasterConversion() {

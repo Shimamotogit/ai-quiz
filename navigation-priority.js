@@ -2,7 +2,8 @@ export const GUIDE_IMAGE_PATH = "images/quiz-guide.jpg";
 const GUIDE_IMAGE_VERSION = "4";
 
 const RULE_AUDIO_FILENAME = "ルールの説明です。.mp3";
-let initialized = false;
+let guideInitialized = false;
+let navigationInitialized = false;
 let startTransitionOwned = false;
 let drainingSystemAudio = false;
 let drainSafetyTimer = null;
@@ -367,14 +368,20 @@ function installGuideFullscreenSync() {
   });
 }
 
-export function initializeNavigationPriority() {
-  if (initialized) return;
-  initialized = true;
+export function initializeGuideImageSupport() {
+  if (guideInitialized) return;
+  guideInitialized = true;
   loadNavigationStyles();
   ensureGuideOverlay();
   installGuideButtons();
   installGuideKeyboardClose();
   installGuideFullscreenSync();
+}
+
+export function initializeNavigationPriority() {
+  if (navigationInitialized) return;
+  navigationInitialized = true;
+  initializeGuideImageSupport();
   installStageObserver();
 
   document.querySelector("#startQuizButton")?.addEventListener("click", handleStartClick, { capture: true });

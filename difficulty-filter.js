@@ -1,5 +1,8 @@
 const SAMPLE_QUESTIONS_URL = new URL("./questions.json", window.location.href).href;
 const VALID_DIFFICULTIES = new Set(["kids", "adults", "all"]);
+const LOCAL_QUESTION_SOURCE_FLAG = "__aiQuizLocalSource";
+const DEFAULT_HOLD_DURATION_MS = 10000;
+const DEFAULT_MAX_SCORE = 100;
 
 let activeDifficulty = "all";
 let installed = false;
@@ -14,17 +17,27 @@ function questionMatchesDifficulty(question) {
   return difficulties.includes("all") || difficulties.includes(activeDifficulty);
 }
 
-function normalizeSettings(settings, questionCount) {
+export function normalizeQuestionSettings(settings, questionCount, isLocalSource = false) {
   const output = { ...(settings ?? {}) };
   const requestedCount = Number(output.defaultQuestionCount);
   output.defaultQuestionCount = Number.isInteger(requestedCount)
     ? Math.min(questionCount, Math.max(1, requestedCount))
     : Math.min(5, questionCount);
 
+  const requestedHoldDuration = Number(output.holdDurationMs);
+  const validHoldDuration = Number.isInteger(requestedHoldDuration) &&
+    requestedHoldDuration >= 500 && requestedHoldDuration <= 10000;
+  output.holdDurationMs = validHoldDuration
+    ? (!isLocalSource && requestedHoldDuration === 1200 ? DEFAULT_HOLD_DURATION_MS : requestedHoldDuration)
+    : DEFAULT_HOLD_DURATION_MS;
+
   const requestedMaxScore = Number(output.defaultMaxScore);
-  output.defaultMaxScore = Number.isInteger(requestedMaxScore)
-    ? Math.max(output.defaultQuestionCount, Math.min(100000, requestedMaxScore))
-    : output.defaultQuestionCount * 100;
+  const minimumMaxScore = output.defaultQuestionCount;
+  const fallbackMaxScore = Math.max(DEFAULT_MAX_SCORE, minimumMaxScore);
+  const isLegacyBundledMaxScore = !isLocalSource && [500, 1000].includes(requestedMaxScore);
+  output.defaultMaxScore = Number.isInteger(requestedMaxScore) && !isLegacyBundledMaxScore
+    ? Math.max(minimumMaxScore, Math.min(100000, requestedMaxScore))
+    : fallbackMaxScore;
 
   return output;
 }
@@ -36,9 +49,10 @@ function filterQuestionData(data) {
     throw new Error("選択した難易度で出題できる問題がありません。JSONのdifficultyを確認してください。");
   }
 
+  const isLocalSource = data?.[LOCAL_QUESTION_SOURCE_FLAG] === true;
   return {
     ...data,
-    settings: normalizeSettings(data.settings, questions.length),
+    settings: normalizeQuestionSettings(data.settings, questions.length, isLocalSource),
     questions
   };
 }
