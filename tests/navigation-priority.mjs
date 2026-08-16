@@ -20,28 +20,40 @@ assert.ok(statSync(resolve(GUIDE_IMAGE_PATH)).size > 0, "説明画像 images/qui
 
 const guideUrl = new URL(buildGuideImageUrl());
 assert.ok(guideUrl.pathname.endsWith("/images/quiz-guide.jpg"), "説明画像はnavigation-priority.js基準でJPGへ解決される必要があります");
-assert.equal(guideUrl.searchParams.get("v"), "3", "説明画像URLにキャッシュバージョンが必要です");
+assert.equal(guideUrl.searchParams.get("v"), "4", "説明画像URLに最新のキャッシュバージョンが必要です");
 const retryUrl = new URL(buildGuideImageUrl("retry-test"));
-assert.equal(retryUrl.searchParams.get("retry"), "retry-test", "画像読み込み失敗後に別URLで再取得できる必要があります");
+assert.equal(retryUrl.searchParams.get("retry"), "retry-test", "画像を別URLで再取得できる必要があります");
 assert.ok(navigation.includes("import.meta.url"), "説明画像・追加CSSはモジュールURL基準で解決する必要があります");
-assert.ok(navigation.includes("refreshGuideImage(true)"), "画像読み込み失敗後の強制再取得処理がありません");
-assert.ok(navigation.includes('image.dataset.failed = "true"'), "画像読み込み失敗状態の記録がありません");
+assert.ok(navigation.includes("refreshGuideImage(true);"), "ボタン押下時に説明画像を再取得する処理がありません");
+assert.ok(navigation.includes('close.textContent = "×";'), "説明画像を閉じる×ボタンがありません");
+assert.ok(navigation.includes('close.className = "guide-image-close";'), "×ボタン専用クラスがありません");
+assert.ok(navigation.includes("document.fullscreenElement"), "ブラウザ全画面中の説明画像表示に対応していません");
+assert.ok(navigation.includes("mountGuideOverlay(overlay);"), "表示時に説明画像を最前面ホストへ移す処理がありません");
+assert.ok(navigation.includes('document.addEventListener("fullscreenchange"'), "全画面切り替え時の説明画像再配置がありません");
+assert.ok(!navigation.includes("guide-image-card"), "旧カード型の説明画像表示が残っています");
+assert.ok(!navigation.includes("guide-image-header"), "旧見出し付き説明画像表示が残っています");
 
 assert.ok(html.includes('id="showGuideImageButton"'), "タイトル画面に説明画像ボタンがありません");
 assert.ok(html.includes('id="showParticipantGuideImageButton"'), "参加者選択画面に説明画像ボタンがありません");
 assert.ok(html.match(/>説明画像を表示<\/button>/g)?.length >= 2, "タイトルと参加者選択の両方に説明画像ボタンが必要です");
 assert.ok(html.includes('id="backToDifficultyButton" class="secondary-button" type="button">難易度選択へ戻る</button>'), "難易度戻るボタンの名称が正しくありません");
-assert.ok(html.includes('src="main.js?v=11"'), "nginx向けのmain.jsキャッシュ更新がありません");
-assert.ok(main.includes('from "./navigation-priority.js?v=3"'), "説明画像制御JSのキャッシュ更新がありません");
-assert.ok(navigation.includes('new URL("./navigation-priority.css?v=2", import.meta.url)'), "説明画像・タイマーCSSはモジュールURL基準で読み込む必要があります");
+assert.ok(html.includes('src="main.js?v=12"'), "nginx向けのmain.jsキャッシュ更新がありません");
+assert.ok(main.includes('from "./navigation-priority.js?v=4"'), "説明画像制御JSのキャッシュ更新がありません");
+assert.ok(navigation.includes('new URL("./navigation-priority.css?v=3", import.meta.url)'), "説明画像CSSのキャッシュ更新がありません");
 
+assert.ok(navigationCss.includes("position: fixed !important;"), "説明画像ビューは画面固定表示である必要があります");
+assert.ok(navigationCss.includes("z-index: 2147483647 !important;"), "説明画像ビューを最前面に固定できていません");
+assert.ok(navigationCss.includes("width: 100vw !important;"), "説明画像ビューが画面幅全体を使用していません");
+assert.ok(navigationCss.includes("height: 100vh !important;"), "説明画像ビューが画面高全体を使用していません");
+assert.ok(navigationCss.includes("object-fit: contain !important;"), "説明画像全体を画面内に収める指定がありません");
+assert.ok(navigationCss.includes(".guide-image-close"), "右上×ボタンのスタイルがありません");
 assert.ok(navigationCss.includes("font-size: clamp(2.7rem, 4.5vw, 3.825rem) !important;"), "PCの残り時間表示が従来値の1.5倍になっていません");
 assert.ok(navigationCss.includes("font-size: 2.625rem !important;"), "モバイルの残り時間表示が従来値の1.5倍になっていません");
 
 const pendingIndex = launchFlow.indexOf("const pendingDifficulty = sessionStorage.getItem");
 const installIndex = launchFlow.indexOf("installSetupNavigationHandlers();");
 assert.ok(installIndex >= 0 && pendingIndex >= 0 && installIndex < pendingIndex, "再読み込み判定より先に設定画面のナビゲーションを登録する必要があります");
-assert.ok(launchFlow.includes('#backToDifficultyButton\")?.addEventListener("click", () => showSetupStep("difficulty"))'), "難易度選択へ戻るイベントがありません");
+assert.ok(launchFlow.includes('#backToDifficultyButton\\")?.addEventListener("click", () => showSetupStep("difficulty"))'), "難易度選択へ戻るイベントがありません");
 
 assert.ok(navigation.includes('document.querySelector("#backToParticipantButton")?.click();'), "再スタート時に参加者選択へ戻る処理がありません");
 assert.ok(navigation.includes("beginSystemAudioDrain();"), "再スタート／タイトル戻り時の音声中断処理がありません");
@@ -50,11 +62,11 @@ assert.ok(navigation.includes('audio.addEventListener("ended", () => {'), "ル�
 assert.ok(navigation.includes("showStartTransition();"), "ルール音声終了後の『まもなくスタート』表示がありません");
 assert.ok(navigation.includes("hideQuizForIntro();"), "ルール説明前に開始遷移を隠す処理がありません");
 assert.ok(navigation.includes("ensureParticipantGuideButton"), "参加者選択用の説明画像ボタン初期化がありません");
-assert.ok(navigation.includes("bindGuideButton(ensureParticipantGuideButton());"), "参加者選択用の説明画像ボタンが共通モーダルに接続されていません");
+assert.ok(navigation.includes("bindGuideButton(ensureParticipantGuideButton());"), "参加者選択用の説明画像ボタンが全面表示に接続されていません");
 
 const priorityInit = main.indexOf("initializeNavigationPriority();");
 const quizShowInit = main.indexOf("initializeQuizShowUI();");
 const systemAudioInit = main.indexOf("initializeSystemAudioFlow();");
 assert.ok(priorityInit >= 0 && priorityInit < quizShowInit && priorityInit < systemAudioInit, "ナビゲーション優先制御は既存の開始・音声ガードより先に初期化する必要があります");
 
-console.log("✓ 説明画像の実ファイル存在・URL・再取得・参加者導線・残り時間1.5倍・既存ナビゲーションを検証");
+console.log("✓ 説明画像の全面表示・×閉じる・JPG実在・全画面同期・既存ナビゲーションを検証");
