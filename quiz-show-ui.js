@@ -144,23 +144,25 @@ function handleRestart(event) {
   });
 }
 
+export function normalizeDefaultMaxScore(value, minimum = 1) {
+  const score = Number(value);
+  const minScore = Math.max(1, Number(minimum) || 1);
+  return Number.isInteger(score) && score >= minScore && score <= 100000
+    ? score
+    : Math.max(DEFAULT_MAX_SCORE, minScore);
+}
+
 function applyDefaultMaxScore() {
   const input = document.querySelector("#maxScoreInput");
   if (!input) return;
 
-  const value = Number(input.value);
-  if (input.dataset.defaultScoreAdjusted === "true" && value !== 500 && value !== 1000) return;
-  if (value === DEFAULT_MAX_SCORE) {
-    input.dataset.defaultScoreAdjusted = "true";
-    return;
-  }
-
-  // 旧デフォルト値だけを100へ置換し、利用者が入力した値は上書きしない。
-  if (value === 500 || value === 1000 || !Number.isFinite(value)) {
-    input.value = String(DEFAULT_MAX_SCORE);
-    input.dataset.defaultScoreAdjusted = "true";
+  const currentValue = Number(input.value);
+  const normalized = normalizeDefaultMaxScore(currentValue, Number(input.min));
+  if (normalized !== currentValue) {
+    input.value = String(normalized);
     input.dispatchEvent(new Event("input", { bubbles: true }));
   }
+  input.dataset.defaultScoreAdjusted = "true";
 }
 
 function installDefaultMaxScore() {
