@@ -1,4 +1,4 @@
-/* タイトルの説明画像とナビゲーション優先表示 */
+/* タイトル・参加者選択の説明画像とナビゲーション優先表示 */
 
 .guide-image-overlay {
   position: absolute;
@@ -62,8 +62,14 @@
   text-align: center;
 }
 
-.title-actions {
+.title-actions,
+#participantStep .form-row {
   flex-wrap: wrap;
+}
+
+/* 「回答確定まで」の残り時間数値だけを従来値の1.5倍にする。 */
+.answer-timer-value {
+  font-size: clamp(2.7rem, 4.5vw, 3.825rem) !important;
 }
 
 @media (max-width: 760px) {
@@ -79,5 +85,9 @@
 
   .guide-image-header {
     align-items: flex-start;
+  }
+
+  .answer-timer-value {
+    font-size: 2.625rem !important;
   }
 }
