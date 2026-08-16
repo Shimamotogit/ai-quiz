@@ -21,7 +21,7 @@ function createCreditNotice(id) {
   const credit = document.createElement("strong");
   credit.textContent = CREDIT_TEXT;
   const separator = document.createTextNode(" ／ ");
-  const voicevoxLink = createExternalLink("VOICEVOX利用規約", VOICEVOX_TERMS_URL);
+  const voicevoxLink = createExternalLink("VOICEVOX ソフトウェア利用規約", VOICEVOX_TERMS_URL);
   const separator2 = document.createTextNode(" ／ ");
   const zundamonLink = createExternalLink("ずんだもん音源利用規約", ZUNDAMON_TERMS_URL);
 
