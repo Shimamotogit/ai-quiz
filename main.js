@@ -18,6 +18,7 @@ import { installVoicevoxCredit } from "./voicevox-credit.js";
 import { initializeQuizShowUI } from "./quiz-show-ui.js";
 import { initializeAnswerVisualState } from "./answer-visual-state.js?v=2";
 import { initializeQuizDefaults } from "./quiz-defaults.js?v=1";
+import { initializeQuizPresentation } from "./quiz-presentation.js?v=1";
 
 async function loadChoiceDisplayFixStyles() {
   const existing = document.querySelector('link[data-choice-display-fixes="true"]');
@@ -70,6 +71,9 @@ await loadCountdownNeutralStyles();
 await initializeQuestionSource();
 const launchOptions = await initializeLaunchFlow();
 configureQuestionDifficulty(launchOptions.difficulty);
+
+// ユーザーの最初のスタート操作で全画面要求を出せるよう、音声ガードより先に登録する。
+initializeQuizPresentation(launchOptions.difficulty);
 
 await import("./detector-compat.js");
 await import("./app.js");
