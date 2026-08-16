@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="question-source.css" />
   <link rel="stylesheet" href="feature-ui.css" />
   <link rel="stylesheet" href="ui-stability-fixes.css" />
-  <script type="module" src="main.js?v=8"></script>
+  <script type="module" src="main.js?v=9"></script>
 </head>
 <body>
   <main class="app-shell">
@@ -53,6 +53,7 @@
           <p class="hero-copy">正解だと思う場所へ移動して答える、会場参加型のクイズです。</p>
           <div class="title-actions">
             <button id="showDifficultyButton" class="primary-button large-button" type="button">クイズをはじめる</button>
+            <button id="showGuideImageButton" class="secondary-button large-button" type="button">説明画像を表示</button>
           </div>
           <p class="local-only-note">カメラ映像、選択したJSON、音声・画像の再生処理はブラウザ内で扱います。</p>
         </div>
@@ -120,7 +121,7 @@
           </div>
           <p id="gameSettingsStatus" class="setup-status"></p>
           <div class="form-row centered-row">
-            <button id="backToDifficultyButton" class="secondary-button" type="button">難易度へ戻る</button>
+            <button id="backToDifficultyButton" class="secondary-button" type="button">難易度選択へ戻る</button>
             <button id="confirmGameButton" class="primary-button large-button" type="button" disabled>次へ</button>
           </div>
         </div>
