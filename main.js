@@ -67,6 +67,11 @@ installAnswerTimingGuard();
 installQuestionSpeechClock();
 installSystemAudioAlias();
 installVoicevoxCredit();
+
+// タイトル画面の説明画像ボタンは、難易度選択を待たずページ表示直後から有効にする。
+// 終了画面・再スタート・タイトル戻りの優先制御も、既存の音声ガードより先に登録する。
+initializeNavigationPriority();
+
 await loadChoiceDisplayFixStyles();
 await loadCountdownNeutralStyles();
 await initializeQuestionSource();
@@ -79,9 +84,6 @@ initializeQuizPresentation(launchOptions.difficulty);
 await import("./detector-compat.js");
 await import("./app.js");
 initializeQuizDefaults();
-
-// 終了画面・再スタート・タイトル戻りの操作は、既存の音声ガードより先に処理する。
-initializeNavigationPriority();
 
 const { initializeQuizMedia } = await import("./quiz-media.js");
 await initializeQuizMedia();
