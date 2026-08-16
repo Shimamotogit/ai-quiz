@@ -37,7 +37,7 @@ assert.ok(html.includes('id="showGuideImageButton"'), "タイトル画面に説�
 assert.ok(html.includes('id="showParticipantGuideImageButton"'), "参加者選択画面に説明画像ボタンがありません");
 assert.ok(html.match(/>説明画像を表示<\/button>/g)?.length >= 2, "タイトルと参加者選択の両方に説明画像ボタンが必要です");
 assert.ok(html.includes('id="backToDifficultyButton" class="secondary-button" type="button">難易度選択へ戻る</button>'), "難易度戻るボタンの名称が正しくありません");
-assert.ok(html.includes('src="main.js?v=12"'), "nginx向けのmain.jsキャッシュ更新がありません");
+assert.ok(html.includes('src="main.js?v=13"'), "nginx向けのmain.jsキャッシュ更新がありません");
 assert.ok(main.includes('from "./navigation-priority.js?v=4"'), "説明画像制御JSのキャッシュ更新がありません");
 assert.ok(navigation.includes('new URL("./navigation-priority.css?v=3", import.meta.url)'), "説明画像CSSのキャッシュ更新がありません");
 
@@ -65,8 +65,12 @@ assert.ok(navigation.includes("ensureParticipantGuideButton"), "参加者選択�
 assert.ok(navigation.includes("bindGuideButton(ensureParticipantGuideButton());"), "参加者選択用の説明画像ボタンが全面表示に接続されていません");
 
 const priorityInit = main.indexOf("initializeNavigationPriority();");
+const sourceInit = main.indexOf("await initializeQuestionSource();");
+const launchInit = main.indexOf("await initializeLaunchFlow();");
 const quizShowInit = main.indexOf("initializeQuizShowUI();");
 const systemAudioInit = main.indexOf("initializeSystemAudioFlow();");
-assert.ok(priorityInit >= 0 && priorityInit < quizShowInit && priorityInit < systemAudioInit, "ナビゲーション優先制御は既存の開始・音声ガードより先に初期化する必要があります");
+assert.ok(priorityInit >= 0 && priorityInit < sourceInit && priorityInit < launchInit, "タイトル画面の説明画像は問題読み込み・難易度選択待ちより前に初期化する必要があります");
+assert.equal(main.match(/initializeNavigationPriority\(\);/g)?.length, 1, "説明画像制御を重複初期化してはいけません");
+assert.ok(priorityInit < quizShowInit && priorityInit < systemAudioInit, "ナビゲーション優先制御は既存の開始・音声ガードより先に初期化する必要があります");
 
-console.log("✓ 説明画像の全面表示・×閉じる・JPG実在・全画面同期・既存ナビゲーションを検証");
+console.log("✓ タイトル直後の説明画像初期化・全面表示・×閉じる・JPG実在・全画面同期を検証");
