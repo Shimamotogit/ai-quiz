@@ -1,5 +1,5 @@
 export const GUIDE_IMAGE_PATH = "images/quiz-guide.jpg";
-const GUIDE_IMAGE_VERSION = "3";
+const GUIDE_IMAGE_VERSION = "4";
 
 const RULE_AUDIO_FILENAME = "ルールの説明です。.mp3";
 let initialized = false;
@@ -18,7 +18,7 @@ function loadNavigationStyles() {
   if (document.querySelector('link[data-navigation-priority="true"]')) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = new URL("./navigation-priority.css?v=2", import.meta.url).href;
+  link.href = new URL("./navigation-priority.css?v=3", import.meta.url).href;
   link.dataset.navigationPriority = "true";
   document.head.append(link);
 }
@@ -191,29 +191,43 @@ function handleReturnToTitleClick(event) {
   window.location.reload();
 }
 
+function getGuideOverlayHost() {
+  const fullscreenElement = document.fullscreenElement;
+  if (fullscreenElement instanceof Element) return fullscreenElement;
+  return document.body;
+}
+
+function mountGuideOverlay(overlay) {
+  const host = getGuideOverlayHost();
+  if (overlay.parentElement !== host) host.append(overlay);
+}
+
+function closeGuideOverlay() {
+  const overlay = document.querySelector("#guideImageOverlay");
+  if (!overlay) return;
+  overlay.hidden = true;
+  document.body.classList.remove("guide-image-open");
+}
+
 function refreshGuideImage(forceRetry = false) {
   const overlay = document.querySelector("#guideImageOverlay");
   const image = overlay?.querySelector(".guide-image");
   const fallback = overlay?.querySelector(".guide-image-fallback");
   if (!(image instanceof HTMLImageElement)) return;
 
-  const retry = forceRetry ? `${Date.now()}` : "";
-  const nextUrl = buildGuideImageUrl(retry);
+  const retryToken = forceRetry ? Date.now() : "";
+  const nextUrl = buildGuideImageUrl(retryToken);
   image.dataset.failed = "false";
   image.hidden = false;
   if (fallback) fallback.hidden = true;
 
-  if (image.src !== nextUrl || forceRetry) {
-    image.src = nextUrl;
-  }
+  // ボタンを押した時点のURLを必ず設定し直し、過去の404や画像キャッシュに依存しない。
+  image.src = nextUrl;
 }
 
 function ensureGuideOverlay() {
   let overlay = document.querySelector("#guideImageOverlay");
   if (overlay) return overlay;
-
-  const stage = document.querySelector("#stage");
-  if (!stage) return null;
 
   overlay = document.createElement("section");
   overlay.id = "guideImageOverlay";
@@ -221,31 +235,24 @@ function ensureGuideOverlay() {
   overlay.hidden = true;
   overlay.setAttribute("role", "dialog");
   overlay.setAttribute("aria-modal", "true");
-  overlay.setAttribute("aria-labelledby", "guideImageTitle");
-
-  const card = document.createElement("div");
-  card.className = "guide-image-card";
-  const header = document.createElement("div");
-  header.className = "guide-image-header";
-  const title = document.createElement("h2");
-  title.id = "guideImageTitle";
-  title.textContent = "クイズの説明画像";
-  const close = document.createElement("button");
-  close.type = "button";
-  close.className = "secondary-button";
-  close.textContent = "閉じる";
-  close.setAttribute("aria-label", "説明画像を閉じる");
-  header.append(title, close);
+  overlay.setAttribute("aria-label", "クイズの説明画像");
 
   const image = document.createElement("img");
   image.alt = "立ち位置クイズの説明画像";
   image.className = "guide-image";
   image.decoding = "async";
+  image.loading = "eager";
 
   const fallback = document.createElement("p");
   fallback.className = "guide-image-fallback";
   fallback.hidden = true;
-  fallback.textContent = `説明画像を読み込めませんでした。${GUIDE_IMAGE_PATH} を確認してください。もう一度ボタンを押すと再読み込みします。`;
+  fallback.textContent = `説明画像を読み込めませんでした。${GUIDE_IMAGE_PATH} を確認してください。`;
+
+  const close = document.createElement("button");
+  close.type = "button";
+  close.className = "guide-image-close";
+  close.textContent = "×";
+  close.setAttribute("aria-label", "説明画像を閉じる");
 
   image.addEventListener("load", () => {
     image.dataset.failed = "false";
@@ -257,18 +264,22 @@ function ensureGuideOverlay() {
     image.hidden = true;
     fallback.hidden = false;
   });
-  close.addEventListener("click", () => {
-    overlay.hidden = true;
-  });
-  overlay.addEventListener("click", (event) => {
-    if (event.target === overlay) overlay.hidden = true;
-  });
+  close.addEventListener("click", closeGuideOverlay);
 
-  card.append(header, image, fallback);
-  overlay.append(card);
-  stage.append(overlay);
-  refreshGuideImage(false);
+  overlay.append(image, fallback, close);
+  getGuideOverlayHost().append(overlay);
   return overlay;
+}
+
+function openGuideOverlay() {
+  const overlay = ensureGuideOverlay();
+  if (!overlay) return;
+
+  mountGuideOverlay(overlay);
+  overlay.hidden = false;
+  document.body.classList.add("guide-image-open");
+  refreshGuideImage(true);
+  overlay.querySelector(".guide-image-close")?.focus();
 }
 
 function ensureTitleGuideButton() {
@@ -305,15 +316,7 @@ function bindGuideButton(button) {
   if (!button || button.dataset.guideImageBound === "true") return;
   button.dataset.guideImageBound = "true";
   button.disabled = false;
-  button.addEventListener("click", () => {
-    const overlay = ensureGuideOverlay();
-    if (!overlay) return;
-    const image = overlay.querySelector(".guide-image");
-    const shouldRetry = image?.dataset.failed === "true";
-    if (shouldRetry) refreshGuideImage(true);
-    overlay.hidden = false;
-    overlay.querySelector("button")?.focus();
-  });
+  button.addEventListener("click", openGuideOverlay);
 }
 
 function installGuideButtons() {
@@ -352,7 +355,15 @@ function installGuideKeyboardClose() {
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
     const overlay = document.querySelector("#guideImageOverlay");
-    if (overlay && !overlay.hidden) overlay.hidden = true;
+    if (overlay && !overlay.hidden) closeGuideOverlay();
+  });
+}
+
+function installGuideFullscreenSync() {
+  document.addEventListener("fullscreenchange", () => {
+    const overlay = document.querySelector("#guideImageOverlay");
+    if (!overlay || overlay.hidden) return;
+    mountGuideOverlay(overlay);
   });
 }
 
@@ -363,6 +374,7 @@ export function initializeNavigationPriority() {
   ensureGuideOverlay();
   installGuideButtons();
   installGuideKeyboardClose();
+  installGuideFullscreenSync();
   installStageObserver();
 
   document.querySelector("#startQuizButton")?.addEventListener("click", handleStartClick, { capture: true });
