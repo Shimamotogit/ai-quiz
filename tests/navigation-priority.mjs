@@ -53,7 +53,7 @@ assert.ok(navigationCss.includes("font-size: 2.625rem !important;"), "モバイ�
 const pendingIndex = launchFlow.indexOf("const pendingDifficulty = sessionStorage.getItem");
 const installIndex = launchFlow.indexOf("installSetupNavigationHandlers();");
 assert.ok(installIndex >= 0 && pendingIndex >= 0 && installIndex < pendingIndex, "再読み込み判定より先に設定画面のナビゲーションを登録する必要があります");
-assert.ok(launchFlow.includes('#backToDifficultyButton\\")?.addEventListener("click", () => showSetupStep("difficulty"))'), "難易度選択へ戻るイベントがありません");
+assert.ok(launchFlow.includes('$("#backToDifficultyButton")?.addEventListener("click", () => showSetupStep("difficulty"));'), "難易度選択へ戻るイベントがありません");
 
 assert.ok(navigation.includes('document.querySelector("#backToParticipantButton")?.click();'), "再スタート時に参加者選択へ戻る処理がありません");
 assert.ok(navigation.includes("beginSystemAudioDrain();"), "再スタート／タイトル戻り時の音声中断処理がありません");
