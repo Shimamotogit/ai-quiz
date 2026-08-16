@@ -1,0 +1,83 @@
+/* タイトルの説明画像とナビゲーション優先表示 */
+
+.guide-image-overlay {
+  position: absolute;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(17, 24, 39, 0.68);
+}
+
+.guide-image-overlay[hidden] {
+  display: none !important;
+}
+
+.guide-image-card {
+  width: min(1080px, 96vw);
+  max-height: 92vh;
+  overflow: auto;
+  padding: 18px;
+  border: 1px solid rgba(23, 32, 51, 0.22);
+  border-radius: 16px;
+  background: #ffffff;
+  color: #172033;
+  box-shadow: 0 18px 48px rgba(5, 10, 20, 0.28);
+}
+
+.guide-image-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.guide-image-header h2 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.5vw, 1.8rem);
+}
+
+.guide-image {
+  display: block;
+  width: 100%;
+  max-height: calc(92vh - 96px);
+  object-fit: contain;
+  border: 1px solid #d5d9e0;
+  border-radius: 10px;
+  background: #f7f8fa;
+}
+
+.guide-image-fallback {
+  margin: 0;
+  padding: 36px 24px;
+  border: 1px solid #d5d9e0;
+  border-radius: 10px;
+  background: #f7f8fa;
+  color: #4f5968;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.title-actions {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 760px) {
+  .guide-image-overlay {
+    padding: 12px;
+  }
+
+  .guide-image-card {
+    width: 100%;
+    max-height: 94vh;
+    padding: 12px;
+  }
+
+  .guide-image-header {
+    align-items: flex-start;
+  }
+}
