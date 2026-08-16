@@ -11,6 +11,8 @@ const PENDING_DIFFICULTY_KEY = "camera-ai-quiz-pending-difficulty";
 const VALID_DIFFICULTIES = new Set(["kids", "adults", "all"]);
 
 let appLoaded = false;
+let navigationHandlersInstalled = false;
+let pendingLaunchResolve = null;
 
 function $(selector) {
   return document.querySelector(selector);
@@ -65,7 +67,37 @@ function announceDifficulty(difficulty) {
   }
 }
 
+function selectDifficulty(difficulty) {
+  const normalized = normalizeDifficulty(difficulty);
+  if (appLoaded) {
+    setPendingDifficulty(normalized);
+    window.location.reload();
+    return;
+  }
+
+  showSetupStep("game");
+  announceDifficulty(normalized);
+  pendingLaunchResolve?.({ difficulty: normalized });
+  pendingLaunchResolve = null;
+}
+
+function installSetupNavigationHandlers() {
+  if (navigationHandlersInstalled) return;
+  navigationHandlersInstalled = true;
+
+  $("#showDifficultyButton")?.addEventListener("click", () => showSetupStep("difficulty"));
+  $("#backToTitleButton")?.addEventListener("click", () => showSetupStep("title"));
+  $("#backToDifficultyButton")?.addEventListener("click", () => showSetupStep("difficulty"));
+
+  document.querySelectorAll("[data-difficulty-choice]").forEach((button) => {
+    button.addEventListener("click", () => selectDifficulty(button.dataset.difficultyChoice));
+  });
+}
+
 export function initializeLaunchFlow() {
+  // pendingDifficulty 経由の再読み込み時も、戻る／難易度選択のイベントを必ず登録する。
+  installSetupNavigationHandlers();
+
   const pendingDifficulty = sessionStorage.getItem(PENDING_DIFFICULTY_KEY);
   if (pendingDifficulty) {
     const difficulty = consumePendingDifficulty();
@@ -77,24 +109,7 @@ export function initializeLaunchFlow() {
   showSetupStep("title");
 
   return new Promise((resolve) => {
-    $("#showDifficultyButton")?.addEventListener("click", () => showSetupStep("difficulty"));
-    $("#backToTitleButton")?.addEventListener("click", () => showSetupStep("title"));
-    $("#backToDifficultyButton")?.addEventListener("click", () => showSetupStep("difficulty"));
-
-    document.querySelectorAll("[data-difficulty-choice]").forEach((button) => {
-      button.addEventListener("click", () => {
-        const difficulty = normalizeDifficulty(button.dataset.difficultyChoice);
-        if (appLoaded) {
-          setPendingDifficulty(difficulty);
-          window.location.reload();
-          return;
-        }
-
-        showSetupStep("game");
-        announceDifficulty(difficulty);
-        resolve({ difficulty });
-      });
-    });
+    pendingLaunchResolve = resolve;
   });
 }
 
