@@ -5,6 +5,7 @@ const DATABASE_VERSION = 1;
 const STORE_NAME = "questionSources";
 const ACTIVE_SOURCE_KEY = "active";
 const SAMPLE_QUESTIONS_URL = new URL("./questions.json", window.location.href).href;
+export const LOCAL_QUESTION_SOURCE_FLAG = "__aiQuizLocalSource";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_QUESTIONS = 10000;
@@ -229,6 +230,13 @@ export function validateAndSanitizeQuestionData(rawInput) {
     const audio = optionalLocalMediaPath(question.audio, `問題${questionNumber}のaudio`, [".mp3"]);
     if (audio !== undefined) sanitized.audio = audio;
 
+    const explanationAudio = optionalLocalMediaPath(
+      question.explanationAudio,
+      `問題${questionNumber}のexplanationAudio`,
+      [".mp3"]
+    );
+    if (explanationAudio !== undefined) sanitized.explanationAudio = explanationAudio;
+
     if (Number.isInteger(question.sourceLine) && question.sourceLine > 0) sanitized.sourceLine = question.sourceLine;
 
     return sanitized;
@@ -250,7 +258,7 @@ export function validateAndSanitizeQuestionData(rawInput) {
   const settings = {
     holdDurationMs: optionalBoundedInteger(
       rawSettings.holdDurationMs,
-      1200,
+      10000,
       500,
       10000,
       "settings.holdDurationMs"
@@ -272,7 +280,7 @@ export function validateAndSanitizeQuestionData(rawInput) {
     defaultQuestionCount,
     defaultMaxScore: optionalBoundedInteger(
       rawSettings.defaultMaxScore,
-      defaultQuestionCount * 100,
+      Math.max(100, defaultQuestionCount),
       defaultQuestionCount,
       100000,
       "settings.defaultMaxScore"
@@ -303,8 +311,20 @@ async function parseQuestionFile(file) {
   return validateAndSanitizeQuestionData(parsed);
 }
 
+export function buildLocalRuntimeQuestionData(data) {
+  return {
+    ...data,
+    [LOCAL_QUESTION_SOURCE_FLAG]: true,
+    questions: data.questions.map((question) => ({
+      ...question,
+      // 組み込み問題の Q001... と誤認されないよう、実行時だけローカル接頭辞を付ける。
+      id: /^Q[0-9]+$/i.test(String(question.id ?? "")) ? `local:${question.id}` : question.id
+    }))
+  };
+}
+
 function buildLocalResponse(data) {
-  return new Response(JSON.stringify(data), {
+  return new Response(JSON.stringify(buildLocalRuntimeQuestionData(data)), {
     status: 200,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
