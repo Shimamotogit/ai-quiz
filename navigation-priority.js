@@ -1,4 +1,4 @@
-export const GUIDE_IMAGE_PATH = "images/quiz-guide.png";
+export const GUIDE_IMAGE_PATH = "images/quiz-guide.jpg";
 
 const RULE_AUDIO_FILENAME = "ルールの説明です。.mp3";
 let initialized = false;
@@ -10,7 +10,7 @@ function loadNavigationStyles() {
   if (document.querySelector('link[data-navigation-priority="true"]')) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = new URL("./navigation-priority.css?v=1", window.location.href).href;
+  link.href = new URL("./navigation-priority.css?v=2", window.location.href).href;
   link.dataset.navigationPriority = "true";
   document.head.append(link);
 }
@@ -243,7 +243,7 @@ function ensureGuideOverlay() {
   return overlay;
 }
 
-function ensureGuideButton() {
+function ensureTitleGuideButton() {
   let button = document.querySelector("#showGuideImageButton");
   if (button) return button;
 
@@ -258,8 +258,22 @@ function ensureGuideButton() {
   return button;
 }
 
-function installGuideButton() {
-  const button = ensureGuideButton();
+function ensureParticipantGuideButton() {
+  let button = document.querySelector("#showParticipantGuideImageButton");
+  if (button) return button;
+
+  const actions = document.querySelector("#participantStep .form-row");
+  if (!actions) return null;
+  button = document.createElement("button");
+  button.id = "showParticipantGuideImageButton";
+  button.className = "secondary-button";
+  button.type = "button";
+  button.textContent = "説明画像を表示";
+  actions.append(button);
+  return button;
+}
+
+function bindGuideButton(button) {
   if (!button || button.dataset.guideImageBound === "true") return;
   button.dataset.guideImageBound = "true";
   button.disabled = false;
@@ -269,6 +283,11 @@ function installGuideButton() {
     overlay.hidden = false;
     overlay.querySelector("button")?.focus();
   });
+}
+
+function installGuideButtons() {
+  bindGuideButton(ensureTitleGuideButton());
+  bindGuideButton(ensureParticipantGuideButton());
 }
 
 function installStageObserver() {
@@ -311,7 +330,7 @@ export function initializeNavigationPriority() {
   initialized = true;
   loadNavigationStyles();
   ensureGuideOverlay();
-  installGuideButton();
+  installGuideButtons();
   installGuideKeyboardClose();
   installStageObserver();
 
