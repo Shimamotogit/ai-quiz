@@ -33,6 +33,7 @@ jobs:
           node --check difficulty-filter.js
           node --check launch-flow.js
           node --check main.js
+          node --check navigation-priority.js
           node --check question-source.js
           node --check question-speech.js
           node --check quiz-defaults.js
@@ -47,6 +48,7 @@ jobs:
           node tests/validate.mjs
           node tests/answer-visual-state.mjs
           node tests/quiz-defaults.mjs
+          node tests/navigation-priority.mjs
           node tests/quiz-presentation.mjs
           node tests/system-audio-flow.mjs
           node tests/audio-license.mjs
