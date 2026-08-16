@@ -11,8 +11,13 @@ export function initializeQuizDefaults() {
   const input = document.querySelector("#holdDurationInput");
   if (!input) return;
 
-  const normalized = normalizeHoldDurationSeconds(input.value);
-  if (String(normalized) !== input.value) {
-    input.value = String(normalized);
-  }
+  const applyValidValue = () => {
+    const normalized = normalizeHoldDurationSeconds(input.value);
+    if (String(normalized) !== input.value) {
+      input.value = String(normalized);
+    }
+  };
+
+  applyValidValue();
+  document.querySelector("#startQuizButton")?.addEventListener("click", applyValidValue, { capture: true });
 }
