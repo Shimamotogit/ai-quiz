@@ -1,4 +1,5 @@
 export const GUIDE_IMAGE_PATH = "images/quiz-guide.jpg";
+const GUIDE_IMAGE_VERSION = "3";
 
 const RULE_AUDIO_FILENAME = "ルールの説明です。.mp3";
 let initialized = false;
@@ -6,11 +7,18 @@ let startTransitionOwned = false;
 let drainingSystemAudio = false;
 let drainSafetyTimer = null;
 
+export function buildGuideImageUrl(retryToken = "") {
+  const url = new URL(`./${GUIDE_IMAGE_PATH}`, import.meta.url);
+  url.searchParams.set("v", GUIDE_IMAGE_VERSION);
+  if (retryToken) url.searchParams.set("retry", String(retryToken));
+  return url.href;
+}
+
 function loadNavigationStyles() {
   if (document.querySelector('link[data-navigation-priority="true"]')) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = new URL("./navigation-priority.css?v=2", window.location.href).href;
+  link.href = new URL("./navigation-priority.css?v=2", import.meta.url).href;
   link.dataset.navigationPriority = "true";
   document.head.append(link);
 }
@@ -183,6 +191,23 @@ function handleReturnToTitleClick(event) {
   window.location.reload();
 }
 
+function refreshGuideImage(forceRetry = false) {
+  const overlay = document.querySelector("#guideImageOverlay");
+  const image = overlay?.querySelector(".guide-image");
+  const fallback = overlay?.querySelector(".guide-image-fallback");
+  if (!(image instanceof HTMLImageElement)) return;
+
+  const retry = forceRetry ? `${Date.now()}` : "";
+  const nextUrl = buildGuideImageUrl(retry);
+  image.dataset.failed = "false";
+  image.hidden = false;
+  if (fallback) fallback.hidden = true;
+
+  if (image.src !== nextUrl || forceRetry) {
+    image.src = nextUrl;
+  }
+}
+
 function ensureGuideOverlay() {
   let overlay = document.querySelector("#guideImageOverlay");
   if (overlay) return overlay;
@@ -213,20 +238,22 @@ function ensureGuideOverlay() {
   header.append(title, close);
 
   const image = document.createElement("img");
-  image.src = GUIDE_IMAGE_PATH;
   image.alt = "立ち位置クイズの説明画像";
   image.className = "guide-image";
+  image.decoding = "async";
 
   const fallback = document.createElement("p");
   fallback.className = "guide-image-fallback";
   fallback.hidden = true;
-  fallback.textContent = `説明画像は準備中です。画像を ${GUIDE_IMAGE_PATH} に配置すると、ここに表示されます。`;
+  fallback.textContent = `説明画像を読み込めませんでした。${GUIDE_IMAGE_PATH} を確認してください。もう一度ボタンを押すと再読み込みします。`;
 
   image.addEventListener("load", () => {
+    image.dataset.failed = "false";
     image.hidden = false;
     fallback.hidden = true;
   });
   image.addEventListener("error", () => {
+    image.dataset.failed = "true";
     image.hidden = true;
     fallback.hidden = false;
   });
@@ -240,6 +267,7 @@ function ensureGuideOverlay() {
   card.append(header, image, fallback);
   overlay.append(card);
   stage.append(overlay);
+  refreshGuideImage(false);
   return overlay;
 }
 
@@ -280,6 +308,9 @@ function bindGuideButton(button) {
   button.addEventListener("click", () => {
     const overlay = ensureGuideOverlay();
     if (!overlay) return;
+    const image = overlay.querySelector(".guide-image");
+    const shouldRetry = image?.dataset.failed === "true";
+    if (shouldRetry) refreshGuideImage(true);
     overlay.hidden = false;
     overlay.querySelector("button")?.focus();
   });

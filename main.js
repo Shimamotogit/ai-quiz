@@ -19,7 +19,7 @@ import { initializeQuizShowUI } from "./quiz-show-ui.js";
 import { initializeAnswerVisualState } from "./answer-visual-state.js?v=2";
 import { initializeQuizDefaults } from "./quiz-defaults.js?v=1";
 import { initializeQuizPresentation } from "./quiz-presentation.js?v=1";
-import { initializeNavigationPriority } from "./navigation-priority.js?v=2";
+import { initializeNavigationPriority } from "./navigation-priority.js?v=3";
 
 async function loadChoiceDisplayFixStyles() {
   const existing = document.querySelector('link[data-choice-display-fixes="true"]');
