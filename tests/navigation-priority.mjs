@@ -32,13 +32,14 @@ assert.ok(navigation.includes("mountGuideOverlay(overlay);"), "表示時に説�
 assert.ok(navigation.includes('document.addEventListener("fullscreenchange"'), "全画面切り替え時の説明画像再配置がありません");
 assert.ok(!navigation.includes("guide-image-card"), "旧カード型の説明画像表示が残っています");
 assert.ok(!navigation.includes("guide-image-header"), "旧見出し付き説明画像表示が残っています");
+assert.ok(navigation.includes("export function initializeGuideImageSupport()"), "説明画像だけを先行初期化する入口がありません");
 
 assert.ok(html.includes('id="showGuideImageButton"'), "タイトル画面に説明画像ボタンがありません");
 assert.ok(html.includes('id="showParticipantGuideImageButton"'), "参加者選択画面に説明画像ボタンがありません");
 assert.ok(html.match(/>説明画像を表示<\/button>/g)?.length >= 2, "タイトルと参加者選択の両方に説明画像ボタンが必要です");
 assert.ok(html.includes('id="backToDifficultyButton" class="secondary-button" type="button">難易度選択へ戻る</button>'), "難易度戻るボタンの名称が正しくありません");
-assert.ok(html.includes('src="main.js?v=13"'), "nginx向けのmain.jsキャッシュ更新がありません");
-assert.ok(main.includes('from "./navigation-priority.js?v=4"'), "説明画像制御JSのキャッシュ更新がありません");
+assert.ok(html.includes('src="main.js?v=14"'), "nginx向けのmain.jsキャッシュ更新がありません");
+assert.ok(main.includes('from "./navigation-priority.js?v=5"'), "説明画像制御JSのキャッシュ更新がありません");
 assert.ok(navigation.includes('new URL("./navigation-priority.css?v=3", import.meta.url)'), "説明画像CSSのキャッシュ更新がありません");
 
 assert.ok(navigationCss.includes("position: fixed !important;"), "説明画像ビューは画面固定表示である必要があります");
@@ -64,13 +65,17 @@ assert.ok(navigation.includes("hideQuizForIntro();"), "ルール説明前に開�
 assert.ok(navigation.includes("ensureParticipantGuideButton"), "参加者選択用の説明画像ボタン初期化がありません");
 assert.ok(navigation.includes("bindGuideButton(ensureParticipantGuideButton());"), "参加者選択用の説明画像ボタンが全面表示に接続されていません");
 
-const priorityInit = main.indexOf("initializeNavigationPriority();");
+const guideInit = main.indexOf("initializeGuideImageSupport();");
 const sourceInit = main.indexOf("await initializeQuestionSource();");
 const launchInit = main.indexOf("await initializeLaunchFlow();");
+const presentationInit = main.indexOf("initializeQuizPresentation(launchOptions.difficulty);");
+const priorityInit = main.indexOf("initializeNavigationPriority();");
 const quizShowInit = main.indexOf("initializeQuizShowUI();");
 const systemAudioInit = main.indexOf("initializeSystemAudioFlow();");
-assert.ok(priorityInit >= 0 && priorityInit < sourceInit && priorityInit < launchInit, "タイトル画面の説明画像は問題読み込み・難易度選択待ちより前に初期化する必要があります");
-assert.equal(main.match(/initializeNavigationPriority\(\);/g)?.length, 1, "説明画像制御を重複初期化してはいけません");
+assert.ok(guideInit >= 0 && guideInit < sourceInit && guideInit < launchInit, "タイトル画面の説明画像は問題読み込み・難易度選択待ちより前に初期化する必要があります");
+assert.ok(presentationInit >= 0 && priorityInit > presentationInit, "全画面要求のcaptureハンドラをナビゲーション停止処理より先に登録する必要があります");
 assert.ok(priorityInit < quizShowInit && priorityInit < systemAudioInit, "ナビゲーション優先制御は既存の開始・音声ガードより先に初期化する必要があります");
+assert.equal(main.match(/initializeGuideImageSupport\(\);/g)?.length, 1, "説明画像先行初期化を重複実行してはいけません");
+assert.equal(main.match(/initializeNavigationPriority\(\);/g)?.length, 1, "ナビゲーション優先制御を重複初期化してはいけません");
 
-console.log("✓ タイトル直後の説明画像初期化・全面表示・×閉じる・JPG実在・全画面同期を検証");
+console.log("✓ タイトル説明画像・全面表示・×閉じる・全画面capture順・既存ナビゲーションを検証");
