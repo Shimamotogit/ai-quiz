@@ -17,7 +17,7 @@ function questionMatchesDifficulty(question) {
   return difficulties.includes("all") || difficulties.includes(activeDifficulty);
 }
 
-function normalizeSettings(settings, questionCount, isLocalSource) {
+export function normalizeQuestionSettings(settings, questionCount, isLocalSource = false) {
   const output = { ...(settings ?? {}) };
   const requestedCount = Number(output.defaultQuestionCount);
   output.defaultQuestionCount = Number.isInteger(requestedCount)
@@ -52,7 +52,7 @@ function filterQuestionData(data) {
   const isLocalSource = data?.[LOCAL_QUESTION_SOURCE_FLAG] === true;
   return {
     ...data,
-    settings: normalizeSettings(data.settings, questions.length, isLocalSource),
+    settings: normalizeQuestionSettings(data.settings, questions.length, isLocalSource),
     questions
   };
 }
