@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { GUIDE_IMAGE_PATH, buildGuideImageUrl } from "../navigation-priority.js";
 
@@ -15,6 +15,8 @@ const html = text("index.html");
 
 assert.equal(GUIDE_IMAGE_PATH, "images/quiz-guide.jpg", "説明画像の固定パスはJPGである必要があります");
 assert.ok(!navigation.includes("images/quiz-guide.png"), "旧PNGパスが残っています");
+assert.ok(existsSync(resolve(GUIDE_IMAGE_PATH)), "説明画像 images/quiz-guide.jpg がリポジトリに存在しません");
+assert.ok(statSync(resolve(GUIDE_IMAGE_PATH)).size > 0, "説明画像 images/quiz-guide.jpg が空ファイルです");
 
 const guideUrl = new URL(buildGuideImageUrl());
 assert.ok(guideUrl.pathname.endsWith("/images/quiz-guide.jpg"), "説明画像はnavigation-priority.js基準でJPGへ解決される必要があります");
@@ -55,4 +57,4 @@ const quizShowInit = main.indexOf("initializeQuizShowUI();");
 const systemAudioInit = main.indexOf("initializeSystemAudioFlow();");
 assert.ok(priorityInit >= 0 && priorityInit < quizShowInit && priorityInit < systemAudioInit, "ナビゲーション優先制御は既存の開始・音声ガードより先に初期化する必要があります");
 
-console.log("✓ 説明画像の実ファイルURL・再取得・参加者導線・残り時間1.5倍・既存ナビゲーションを検証");
+console.log("✓ 説明画像の実ファイル存在・URL・再取得・参加者導線・残り時間1.5倍・既存ナビゲーションを検証");
