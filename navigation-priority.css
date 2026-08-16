@@ -1,65 +1,96 @@
 /* タイトル・参加者選択の説明画像とナビゲーション優先表示 */
 
 .guide-image-overlay {
-  position: absolute;
-  z-index: 80;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: rgba(17, 24, 39, 0.68);
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #000 !important;
+  color: #fff;
+  isolation: isolate;
 }
 
 .guide-image-overlay[hidden] {
   display: none !important;
 }
 
-.guide-image-card {
-  width: min(1080px, 96vw);
-  max-height: 92vh;
-  overflow: auto;
-  padding: 18px;
-  border: 1px solid rgba(23, 32, 51, 0.22);
-  border-radius: 16px;
-  background: #ffffff;
-  color: #172033;
-  box-shadow: 0 18px 48px rgba(5, 10, 20, 0.28);
-}
-
-.guide-image-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 14px;
-}
-
-.guide-image-header h2 {
-  margin: 0;
-  font-size: clamp(1.25rem, 2.5vw, 1.8rem);
-}
-
 .guide-image {
+  position: absolute !important;
+  z-index: 1;
+  inset: 0 !important;
   display: block;
-  width: 100%;
-  max-height: calc(92vh - 96px);
-  object-fit: contain;
-  border: 1px solid #d5d9e0;
-  border-radius: 10px;
-  background: #f7f8fa;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #000;
+  object-fit: contain !important;
+  object-position: center center;
+}
+
+.guide-image-close {
+  position: absolute !important;
+  z-index: 3 !important;
+  top: max(16px, env(safe-area-inset-top)) !important;
+  right: max(16px, env(safe-area-inset-right)) !important;
+  display: grid !important;
+  place-items: center;
+  width: 64px !important;
+  min-width: 64px !important;
+  height: 64px !important;
+  min-height: 64px !important;
+  margin: 0 !important;
+  padding: 0 0 6px !important;
+  border: 2px solid rgba(255,255,255,.9) !important;
+  border-radius: 999px !important;
+  background: rgba(10, 15, 26, .78) !important;
+  color: #fff !important;
+  cursor: pointer;
+  font-size: 46px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  box-shadow: 0 5px 20px rgba(0,0,0,.35) !important;
+}
+
+.guide-image-close:hover,
+.guide-image-close:focus-visible {
+  background: rgba(10, 15, 26, .96) !important;
+  outline: 3px solid #fff !important;
+  outline-offset: 3px !important;
 }
 
 .guide-image-fallback {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: min(720px, calc(100vw - 48px));
   margin: 0;
-  padding: 36px 24px;
-  border: 1px solid #d5d9e0;
-  border-radius: 10px;
-  background: #f7f8fa;
-  color: #4f5968;
-  font-size: 1rem;
-  font-weight: 700;
+  padding: 28px 32px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 12px;
+  background: rgba(17,24,39,.94);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 800;
   line-height: 1.7;
   text-align: center;
+}
+
+body.guide-image-open {
+  overflow: hidden !important;
 }
 
 .title-actions,
@@ -73,18 +104,20 @@
 }
 
 @media (max-width: 760px) {
-  .guide-image-overlay {
-    padding: 12px;
+  .guide-image-close {
+    top: max(10px, env(safe-area-inset-top)) !important;
+    right: max(10px, env(safe-area-inset-right)) !important;
+    width: 54px !important;
+    min-width: 54px !important;
+    height: 54px !important;
+    min-height: 54px !important;
+    padding-bottom: 5px !important;
+    font-size: 40px !important;
   }
 
-  .guide-image-card {
-    width: 100%;
-    max-height: 94vh;
-    padding: 12px;
-  }
-
-  .guide-image-header {
-    align-items: flex-start;
+  .guide-image-fallback {
+    width: calc(100vw - 28px);
+    padding: 22px 18px;
   }
 
   .answer-timer-value {
