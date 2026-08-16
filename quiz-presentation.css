@@ -1,0 +1,146 @@
+/* クイズ開始時のルール案内・子ども向け読み表示・〇×強調 */
+
+.rule-guide-overlay {
+  position: absolute;
+  z-index: 45;
+  top: 50%;
+  left: 50%;
+  width: min(900px, calc(100% - 44px));
+  transform: translate(-50%, -50%);
+  padding: clamp(24px, 4vw, 42px);
+  border: 1px solid rgba(23, 32, 51, 0.30);
+  border-radius: 18px;
+  background: rgba(255, 253, 248, 0.97);
+  color: #172033;
+  box-shadow: 0 18px 46px rgba(5, 10, 20, 0.26);
+  text-align: center;
+  pointer-events: none;
+}
+
+.rule-guide-overlay[hidden] {
+  display: none !important;
+}
+
+.rule-guide-overlay h2 {
+  margin: 0 0 24px;
+  font-size: clamp(1.9rem, 3.7vw, 3.15rem);
+  line-height: 1.2;
+}
+
+.rule-guide-overlay p {
+  margin: 12px 0;
+  font-size: clamp(1.25rem, 2.45vw, 2rem);
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.kids-reading-setting {
+  margin: 20px 0 0;
+  padding: 16px;
+  border: 1px solid #c7cdd7;
+  border-radius: 12px;
+  background: #fff;
+  text-align: left;
+}
+
+.kids-reading-setting h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.kids-reading-setting > p {
+  margin: 6px 0 14px;
+  color: #5f6775;
+}
+
+.kids-reading-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.kids-reading-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid #c7cdd7;
+  border-radius: 10px;
+  background: #f8f9fb;
+  cursor: pointer;
+}
+
+.kids-reading-choice:has(input:checked) {
+  border-color: #65738a;
+  background: #eef1f5;
+  box-shadow: inset 0 0 0 1px rgba(23, 32, 51, 0.08);
+}
+
+.kids-reading-choice input {
+  margin-top: 3px;
+  accent-color: #172033;
+}
+
+.kids-reading-choice span {
+  display: grid;
+  gap: 3px;
+}
+
+.kids-reading-choice strong {
+  font-size: 1rem;
+}
+
+.kids-reading-choice small {
+  color: #5f6775;
+  line-height: 1.45;
+}
+
+/* DOM上の元問題文は維持し、表示だけをひらがなへ差し替える。 */
+#questionText.hiragana-question-text {
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+
+#questionText.hiragana-question-text::after {
+  display: block;
+  content: attr(data-display-text);
+  font-size: clamp(1.25rem, 2.55vw, 2.2rem);
+  line-height: 1.34;
+  white-space: normal;
+}
+
+/* 〇×問題では記号そのものを主役にする。 */
+#choiceLabels.large-circle-cross .choice-label {
+  font-size: clamp(4.75rem, 12vw, 9.5rem) !important;
+  font-weight: 950 !important;
+  line-height: 0.9 !important;
+  letter-spacing: 0 !important;
+}
+
+@media (max-width: 760px) {
+  .rule-guide-overlay {
+    width: min(94vw, 760px);
+    padding: 22px 18px;
+  }
+
+  .rule-guide-overlay h2 {
+    margin-bottom: 18px;
+    font-size: clamp(1.65rem, 7vw, 2.35rem);
+  }
+
+  .rule-guide-overlay p {
+    font-size: clamp(1.1rem, 4.8vw, 1.5rem);
+  }
+
+  .kids-reading-options {
+    grid-template-columns: 1fr;
+  }
+
+  #questionText.hiragana-question-text::after {
+    font-size: clamp(1.15rem, 4.7vw, 1.65rem);
+  }
+
+  #choiceLabels.large-circle-cross .choice-label {
+    font-size: clamp(4rem, 17vw, 7rem) !important;
+  }
+}
