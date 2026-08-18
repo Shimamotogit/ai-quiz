@@ -1,114 +1,69 @@
 # カメラAI立ち位置クイズ
 
-カメラ映像から登録した参加者を検出し、画面上の回答エリアへ移動して答えるブラウザ向けクイズアプリです。
+カメラ映像から登録した参加者を検出し、画面上の回答エリアへ移動して答えるブラウザ向けクイズアプリです。ビルド工程はなく、リポジトリをそのまま静的Webサーバーで配信できます。
 
 > **音声クレジット：VOICEVOX:ずんだもん**
 >
-> `音声データ_MP3/` 以下の MP3 は、リポジトリ管理者の申告に基づき、すべて VOICEVOX:ずんだもん で生成された音声です。音声の利用・複製・再配布等には VOICEVOX およびずんだもん音源の公式規約が適用されます。詳細は [`AUDIO_LICENSE.md`](AUDIO_LICENSE.md) を確認してください。
+> `音声データ_MP3/` 以下の MP3 は、リポジトリ管理者の申告に基づき、すべて VOICEVOX:ずんだもん で生成された音声です。詳細は [`docs/AUDIO_LICENSE.md`](docs/AUDIO_LICENSE.md) を確認してください。
 
 ## 主な機能
 
-- タイトル画面
-- 難易度選択
-  - 子ども向け
-  - 大人向け
-  - すべて
+- タイトル画面、難易度選択、問題設定、カメラ・参加者設定
+- 子ども向け問題のひらがな表示切り替え
 - JSON問題ファイルのローカル読み込み
-- `AIクイズ問題マスタ`形式のJSONを既存の出題形式へ自動変換
-- 問題文と選択肢の日本語自動読み上げ
-- 読み上げ終了後に回答時間を開始
-- 「もう一度読み上げる」操作
-- 問題ごとの画像表示・MP3音声再生（従来形式との互換）
-- 2択・3択以上の回答エリアを色分け
-- 正解後に補足コメントを表示
+- カメラ映像による参加者検出と立ち位置回答
 - 時間確定／スペースキー確定の2種類の回答方式
+- 問題・解説・システム音声のMP3再生とブラウザ読み上げフォールバック
+- 問題画像、説明画像、全画面表示
+- 採点、解説、最終スコア表示
 
 ## 起動方法
+
+### Pythonの簡易HTTPサーバー
 
 ```bash
 git clone https://github.com/Shimamotogit/ai-quiz.git
 cd ai-quiz
-git switch main
-git pull origin main
 python -m http.server 8080
 ```
 
-ブラウザで次を開きます。
+ブラウザで `http://localhost:8080` を開きます。`python` コマンドがない環境では `python3 -m http.server 8080` を使用してください。
 
-```text
-http://localhost:8080
-```
+### nginx
 
-`python`が使えない場合は次を使います。
+ビルドやファイル生成は不要です。cloneしたリポジトリをnginxのドキュメントルートとして配信してください。既存のnginx設定でディレクトリを静的配信できている場合は、これまでと同じ方法で利用できます。
 
-```bash
-python3 -m http.server 8080
-```
+最小構成の考え方は次のとおりです。
 
-## ゲームの流れ
+```nginx
+server {
+    listen 80;
+    server_name _;
+    root /path/to/ai-quiz;
+    index index.html;
 
-1. タイトル画面で「クイズをはじめる」を押します。
-2. 難易度を選択します。
-3. 必要に応じてJSONファイルを選択します。
-4. 出題数と最大点を設定します。
-5. カメラと参加者を設定します。
-6. 回答方法を選び、クイズを開始します。
-7. 問題と選択肢が自動で読み上げられます。
-8. 読み上げが終了すると回答時間が始まります。
-
-## 既定の問題データ
-
-`questions.json`には、提供された `AIクイズ問題マスタ`（50問）をアプリ用形式へ変換した問題を収録しています。
-
-元データの内容を推測で修正しない方針のため、回答を安全に特定できない次の5問は既定の出題対象から除外しています。
-
-- No.21〜24: 回答が未設定
-- No.26: 〇✕形式に対して回答が `A` になっており、選択肢へ安全に対応付けできない
-
-そのため、既定の出題可能問題数は45問です。元JSONに含まれる警告は `questions.json` の `sourceMeta` に残しています。
-
-## AIクイズ問題マスタ形式のJSON
-
-画面のJSON選択から、次のようなマスタ形式をそのまま読み込めます。
-
-```json
-{
-  "schema_version": "1.0",
-  "title": "AIクイズ問題マスタ",
-  "questions": [
-    {
-      "id": "Q001",
-      "no": 1,
-      "target": {
-        "children": true,
-        "adults": false,
-        "employees": false
-      },
-      "adopted": true,
-      "question": "AIは、人間が考えて答えたように見える文章を作れる。",
-      "choice_type": "true_false",
-      "choices": ["〇", "✕"],
-      "answer": "〇",
-      "supplemental_comment": "AIは、人間が書いたように見える文章を作ることができます。"
+    location / {
+        try_files $uri $uri/ =404;
     }
-  ]
 }
 ```
 
-変換時は次のように扱います。
+カメラAPIはブラウザのセキュリティ制約を受けます。本番公開時はHTTPSを使用してください。
 
-- `question` → 問題文
-- `choices` → 選択肢
-- `answer` → 正解位置
-- `target.children` → 子ども向け
-- `target.adults` / `target.employees` → 大人向け
-- `supplemental_comment` → 採点後の解説
-- `adopted: false` → 出題対象外
-- 回答未設定・回答形式不整合 → 推測せず出題対象外
+## 既定の問題データ
 
-## 従来のJSON形式
+`questions.json` はリポジトリ直下に置き、アプリから `/questions.json` 相当のURLで読み込みます。既存の公開URLとローカルJSON互換を保つため、このファイルは `assets/` 配下へ移動しません。
 
-従来形式も引き続き利用できます。設定を省略した場合、回答確定時間は10秒、最大点数は100点が既定です。有効な値を明示した場合は、その値を優先します。
+提供されたAIクイズ問題マスタ50問のうち、回答を安全に特定できない5問は組み込み出題対象から除外しています。
+
+- No.21〜24: 回答未設定
+- No.26: 〇✕形式に対して回答が `A`
+
+既定の出題可能問題数は45問です。
+
+## 問題JSON
+
+従来形式では、設定を省略した場合の回答確定時間は10秒、最大点数は100点です。有効な値を明示した場合はその値を優先します。
 
 ```json
 {
@@ -122,124 +77,73 @@ python3 -m http.server 8080
   "questions": [
     {
       "id": "sample",
-      "text": "この画像は生成AIによって作成されたものである",
+      "text": "問題文",
       "choices": ["〇", "✕"],
       "correctIndex": 0,
       "difficulty": ["kids", "adults"],
-      "image": "images/sample-ai-photo-question.svg",
-      "imageAlt": "生成AI判定クイズ用のサンプル画像",
-      "audio": "audio/sample-question.mp3",
-      "explanationAudio": "audio/sample-explanation.mp3",
-      "explanation": "採点後に表示する補足コメント"
+      "image": "images/example.jpg",
+      "audio": "audio/question.mp3",
+      "explanationAudio": "audio/explanation.mp3",
+      "explanation": "採点後の補足説明"
     }
   ]
 }
 ```
 
-### 従来形式で追加できる項目
+`image`、`audio`、`explanationAudio` は同一サイト内の相対パスのみ利用できます。ローカルJSONで音声を明示していない場合、組み込み問題用の連番MP3へ自動対応せず、ブラウザ読み上げへフォールバックします。
 
-- `difficulty`：`kids`、`adults`、`all`
-- `image`：同一サイト内の相対パス。`.png`、`.jpg`、`.jpeg`、`.webp`、`.gif`、`.svg`
-- `imageAlt`：画像の説明
-- `audio`：問題読み上げに使う同一サイト内のMP3相対パス。`.mp3`
-- `explanationAudio`：採点後の解説に使う同一サイト内のMP3相対パス。`.mp3`
-- `explanation`：採点後に表示する補足コメント
+## 組み込み音声
 
-## 問題読み上げと制限時間
+公開URL互換を保つため、音声ディレクトリはリポジトリ直下のまま維持しています。
 
-問題表示時に、用意済みの MP3 がある場合はその音声を優先し、利用できない場合はブラウザの Web Speech API にフォールバックして日本語で問題文と選択肢を読み上げます。
+- `音声データ_MP3/01.システム/`：開始、正誤、結果など
+- `音声データ_MP3/02.問題/`：問題音声
+- `音声データ_MP3/03.問題_補足説明/`：解説音声
 
-- 〇は「まる」、✕は「ばつ」と読み上げます。
-- 3択以上は A / B / C と選択肢本文を読み上げます。
-- 読み上げ中は回答用の時計を停止します。
-- **時間確定モードの滞在時間は、読み上げ終了後から進みます。**
-- **スペースキーモードも、読み上げ中はスペースによる回答カウントダウンを開始できません。**
-- 読み上げ終了後に回答受付を開始します。
-- 「もう一度読み上げる」を押した場合も、再読み上げ中は回答用時計を停止します。
-- MP3が存在しない場合や再生できない場合は、ブラウザ標準の音声合成を利用することがあります。
+音声ファイルは管理者が差し替える運用です。固定SHA-256台帳は管理しません。差し替え時はアプリが参照するファイル名・ディレクトリ構成と、VOICEVOX等の利用条件を維持してください。
 
-ブラウザやOSによってフォールバック時に利用される日本語音声は異なります。
+## VOICEVOX:ずんだもん
 
-## MP3音声との互換
-
-組み込み問題の問題音声は `音声データ_MP3/02.問題/`、採点後の補足説明音声は `音声データ_MP3/03.問題_補足説明/`、開始・回答結果・終了などのシステム音声は `音声データ_MP3/01.システム/` を利用します。
-
-ローカルJSONでは、問題ごとに `audio` または `explanationAudio` が明示されている場合だけ、その同一サイト内MP3を利用します。ローカル問題のIDが `Q001` のような組み込み問題と同じ形式でも、組み込み連番MP3へ自動対応はしません。音声が明示されていない場合はブラウザ読み上げへフォールバックします。
-
-## VOICEVOX:ずんだもん 音声の利用条件
-
-このアプリで配布・再生する `音声データ_MP3/` 以下の MP3 は、リポジトリ管理者の申告に基づき、すべて **VOICEVOX:ずんだもん** で生成されています。
-
-利用時のクレジットは次のとおりです。
-
-> **VOICEVOX:ずんだもん**
-
-音声については、コードや他の素材と同じ条件で自由利用できるものとして扱わないでください。音声を利用、複製、再配布、改変、別アプリへ組み込む場合は、以下の最新公式規約に従う必要があります。
+このアプリで配布・再生する `音声データ_MP3/` 以下のMP3は、リポジトリ管理者の申告に基づき **VOICEVOX:ずんだもん** で生成されています。
 
 - VOICEVOX ソフトウェア利用規約: https://voicevox.hiroshiba.jp/term/
 - ずんだもん音源利用規約: https://zunko.jp/con_ongen_kiyaku.html
 - VOICEVOX Q&A: https://voicevox.hiroshiba.jp/qa/
 
-VOICEVOX の規約では、生成音声を他者に利用させる場合、その利用者にも適用条件の遵守を求める必要があります。そのため、音声をこのリポジトリから再配布する場合も、クレジットと規約案内を保持してください。
+詳しい扱いは [`docs/AUDIO_LICENSE.md`](docs/AUDIO_LICENSE.md) を参照してください。
 
-より詳しい扱い、禁止事項の概要、キャラクター画像等を追加する場合の注意は [`AUDIO_LICENSE.md`](AUDIO_LICENSE.md) を参照してください。今回提供された音声ファイルは [`音声データ_MP3/SHA256SUMS.txt`](音声データ_MP3/SHA256SUMS.txt) で同一性を確認できます。
-
-## ローカル処理とセキュリティ
-
-- 選択したJSONはブラウザの `File` API で読み込みます。
-- JSONはブラウザ内で検証し、IndexedDBに保存します。
-- JSONやカメラ映像を外部サーバーへ送信する処理は追加していません。
-- 問題音声は同一サイト内のMP3を優先し、必要に応じてブラウザ標準の音声合成へフォールバックします。
-- JSON内の文字列は `textContent` で表示し、HTMLとして実行しません。
-- 画像とMP3は同一サイト内の相対パスのみ許可します。
-- Content Security Policyで読み込み先を制限しています。
-
-## ファイル構成
+## ディレクトリ構成
 
 ```text
 .
-├── AUDIO_LICENSE.md
-├── index.html
-├── styles.css
-├── feature-ui.css
-├── question-source.css
-├── main.js
-├── voicevox-credit.js
-├── launch-flow.js
-├── difficulty-filter.js
-├── question-source.js
-├── question-master-adapter.js
-├── question-speech.js
-├── quiz-media.js
-├── answer-timer-feedback.js
-├── answer-visual-state.js
-├── quiz-defaults.js
-├── quiz-presentation.js
-├── quiz-presentation.css
-├── quiz-show-ui.js
-├── navigation-priority.js
-├── navigation-priority.css
-├── system-audio-flow.js
-├── system-audio-alias.js
-├── detector-compat.js
-├── app.js
-├── questions.json
-├── 音声データ_MP3/
+├── index.html                  # 静的サイトの入口
+├── questions.json              # 組み込み問題データ（公開URL互換のためルート維持）
+├── assets/
+│   ├── js/                     # アプリのJavaScript
+│   └── css/                    # 表示用CSS
+├── images/                     # 説明画像・問題画像
+├── 音声データ_MP3/             # 公開URL互換を維持する音声
 │   ├── README.md
-│   ├── SHA256SUMS.txt
 │   ├── 01.システム/
 │   ├── 02.問題/
 │   └── 03.問題_補足説明/
-├── images/
-├── tests/
-├── _headers
+├── docs/
+│   ├── AUDIO_LICENSE.md
+│   ├── DESIGN_GUIDELINES.md
+│   └── 問題一覧.md
+├── tests/                      # Node.jsによる静的・回帰テスト
+├── .github/workflows/          # CI
+├── _headers                    # 静的ホスティング向けヘッダー設定
 └── README.md
 ```
 
+## 開発時の確認
+
+GitHub Actionsでは、JavaScript構文、画面遷移、回答表示、音声フロー、既定値、説明画像、VOICEVOXクレジット・規約案内などを検証します。音声ファイルそのものは差し替え可能なため、固定ハッシュによる内容一致検証は行いません。
+
 ## 注意事項
 
-- VOICEVOX・ずんだもん関連の規約は将来変更される可能性があります。公開、再配布、商用利用等の前に必ず公式規約の最新版を確認してください。
-- ずんだもんのイラスト、立ち絵、3Dモデル等を追加する場合は、音源規約とは別にキャラクター利用ガイドライン等の確認が必要です。
-- Web Speech API の音声品質・利用可否はブラウザとOSに依存します。
-- MP3や画像を追加する場合は、JSONまたはアプリが参照する相対パスにファイルを配置してください。
-- 低性能端末では、人物検出・画像表示・音声処理を同時に行うと動作が重くなる場合があります。
+- `index.html`、`questions.json`、`images/`、`音声データ_MP3/` の公開パスはアプリや問題データから参照されるため、変更する場合は参照元も同時に更新してください。
+- JSONやカメラ映像はブラウザ内で処理し、アプリから任意の外部サーバーへ送信する処理は追加していません。
+- MP3が存在しない、または再生できない場合はブラウザのWeb Speech APIへフォールバックすることがあります。
+- VOICEVOX・ずんだもん関連の規約は更新される可能性があるため、公開・再配布・商用利用前に最新版を確認してください。

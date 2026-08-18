@@ -3,15 +3,15 @@ import { readFile } from "node:fs/promises";
 import {
   createPausableClock,
   parseRemainingSeconds
-} from "../answer-timer-feedback.js";
-import { convertQuestionMasterData } from "../question-master-adapter.js";
-import { getPreparedAudioPath } from "../question-speech.js";
-import { normalizeDefaultMaxScore } from "../quiz-show-ui.js";
+} from "../assets/js/answer-timer-feedback.js";
+import { convertQuestionMasterData } from "../assets/js/question-master-adapter.js";
+import { getPreparedAudioPath } from "../assets/js/question-speech.js";
+import { normalizeDefaultMaxScore } from "../assets/js/quiz-show-ui.js";
 
 async function testQuizChoiceDesign() {
-  const css = await readFile(new URL("../choice-display-fixes.css", import.meta.url), "utf8");
-  const uiFixes = await readFile(new URL("../ui-stability-fixes.css", import.meta.url), "utf8");
-  const main = await readFile(new URL("../main.js", import.meta.url), "utf8");
+  const css = await readFile(new URL("../assets/css/choice-display-fixes.css", import.meta.url), "utf8");
+  const uiFixes = await readFile(new URL("../assets/css/ui-stability-fixes.css", import.meta.url), "utf8");
+  const main = await readFile(new URL("../assets/js/main.js", import.meta.url), "utf8");
 
   assert.match(css, /\.choice-label\.active\s*\{[^}]*background:\s*rgba\(248, 249, 251, 0\.98\)\s*!important/s);
   assert.match(css, /box-shadow:\s*inset 0 0 0 3px rgba\(101, 115, 138, 0\.72\)/s);
@@ -26,8 +26,8 @@ async function testQuizChoiceDesign() {
 }
 
 async function testTwoChoiceBadgeVisibility() {
-  const css = await readFile(new URL("../choice-display-fixes.css", import.meta.url), "utf8");
-  const quizMedia = await readFile(new URL("../quiz-media.js", import.meta.url), "utf8");
+  const css = await readFile(new URL("../assets/css/choice-display-fixes.css", import.meta.url), "utf8");
+  const quizMedia = await readFile(new URL("../assets/js/quiz-media.js", import.meta.url), "utf8");
 
   assert.match(
     css,
@@ -44,9 +44,9 @@ async function testTwoChoiceBadgeVisibility() {
 }
 
 async function testCompactExplanationDesign() {
-  const css = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
-  const uiFixes = await readFile(new URL("../ui-stability-fixes.css", import.meta.url), "utf8");
-  const quizMedia = await readFile(new URL("../quiz-media.js", import.meta.url), "utf8");
+  const css = await readFile(new URL("../assets/css/feature-ui.css", import.meta.url), "utf8");
+  const uiFixes = await readFile(new URL("../assets/css/ui-stability-fixes.css", import.meta.url), "utf8");
+  const quizMedia = await readFile(new URL("../assets/js/quiz-media.js", import.meta.url), "utf8");
 
   assert.match(css, /\.quiz-feedback-panel\s*\{[^}]*max-height:\s*112px/s);
   assert.match(css, /\.quiz-feedback-panel\s*\{[^}]*bottom:\s*calc\(22% \+ 10px\)/s);
@@ -92,9 +92,9 @@ function testRemainingSecondsParser() {
 }
 
 async function testTimerUiAndBootOrder() {
-  const css = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
-  const uiFixes = await readFile(new URL("../ui-stability-fixes.css", import.meta.url), "utf8");
-  const main = await readFile(new URL("../main.js", import.meta.url), "utf8");
+  const css = await readFile(new URL("../assets/css/feature-ui.css", import.meta.url), "utf8");
+  const uiFixes = await readFile(new URL("../assets/css/ui-stability-fixes.css", import.meta.url), "utf8");
+  const main = await readFile(new URL("../assets/js/main.js", import.meta.url), "utf8");
 
   assert.match(css, /\.answer-timer-panel\s*\{[^}]*width:\s*250px/s);
   assert.match(css, /\.answer-timer-value\s*\{[^}]*font-size:\s*clamp\(1\.8rem, 3vw, 2\.55rem\)/s);
@@ -119,7 +119,7 @@ async function testTimerUiAndBootOrder() {
 }
 
 async function testRestartTransitionBeforeAudio() {
-  const flow = await readFile(new URL("../quiz-show-ui.js", import.meta.url), "utf8");
+  const flow = await readFile(new URL("../assets/js/quiz-show-ui.js", import.meta.url), "utf8");
 
   assert.match(flow, /function handleRestart\(event\)/);
   assert.match(flow, /showRoundTransition\("restart"\);/);
@@ -138,8 +138,8 @@ async function testRestartTransitionBeforeAudio() {
 }
 
 async function testStableTextAndDefaultScore() {
-  const uiFixes = await readFile(new URL("../ui-stability-fixes.css", import.meta.url), "utf8");
-  const flow = await readFile(new URL("../quiz-show-ui.js", import.meta.url), "utf8");
+  const uiFixes = await readFile(new URL("../assets/css/ui-stability-fixes.css", import.meta.url), "utf8");
+  const flow = await readFile(new URL("../assets/js/quiz-show-ui.js", import.meta.url), "utf8");
   const index = await readFile(new URL("../index.html", import.meta.url), "utf8");
 
   assert.match(uiFixes, /\.question-card h1,[\s\S]*font-size:\s*clamp\(1\.25rem, 2\.55vw, 2\.2rem\)\s*!important/);
@@ -153,8 +153,8 @@ async function testStableTextAndDefaultScore() {
   assert.doesNotMatch(flow, /value === 500 \|\| value === 1000/, "有効な500/1000点を旧既定値として強制上書きする処理が残っています");
   assert.match(index, /id="maxScoreInput"[^>]*value="100"/);
 
-  const featureIndex = index.indexOf('href="feature-ui.css"');
-  const fixesIndex = index.indexOf('href="ui-stability-fixes.css"');
+  const featureIndex = index.indexOf('href="assets/css/feature-ui.css"');
+  const fixesIndex = index.indexOf('href="assets/css/ui-stability-fixes.css"');
   assert.ok(featureIndex >= 0 && fixesIndex > featureIndex, "安定表示CSSがfeature-ui.cssより前に読み込まれています");
   console.log("✓ 6. 問題文・回答文を安定表示し、最大点数の既定100と明示値尊重を検証");
 }
@@ -199,7 +199,7 @@ async function testQuestionMasterConversion() {
 }
 
 async function testQuestionSpeechImplementation() {
-  const speech = await readFile(new URL("../question-speech.js", import.meta.url), "utf8");
+  const speech = await readFile(new URL("../assets/js/question-speech.js", import.meta.url), "utf8");
 
   const masterQuestion = { id: "Q001", sourceLine: 1 };
   assert.equal(getPreparedAudioPath(masterQuestion, "question"), "音声データ_MP3/02.問題/001.mp3");
@@ -226,9 +226,9 @@ async function testQuestionSpeechImplementation() {
 }
 
 async function testQuizShowVisualLanguage() {
-  const styles = await readFile(new URL("../styles.css", import.meta.url), "utf8");
-  const featureCss = await readFile(new URL("../feature-ui.css", import.meta.url), "utf8");
-  const uiFixes = await readFile(new URL("../ui-stability-fixes.css", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../assets/css/styles.css", import.meta.url), "utf8");
+  const featureCss = await readFile(new URL("../assets/css/feature-ui.css", import.meta.url), "utf8");
+  const uiFixes = await readFile(new URL("../assets/css/ui-stability-fixes.css", import.meta.url), "utf8");
   const index = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const combined = `${styles}\n${featureCss}\n${uiFixes}`;
 
@@ -248,6 +248,15 @@ async function testQuizShowVisualLanguage() {
   console.log("✓ 9. クイズ番組型の構成を維持しつつ、黄色の上辺ではなく薄い全周枠を適用");
 }
 
+async function testOrganizedStaticPaths() {
+  const index = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  assert.ok(index.includes('src="assets/js/main.js?v=15"'), "index.htmlが整理後のJS入口を参照していません");
+  for (const css of ["styles.css", "question-source.css", "feature-ui.css", "ui-stability-fixes.css"]) {
+    assert.ok(index.includes(`href="assets/css/${css}"`), `index.htmlがassets/css/${css}を参照していません`);
+  }
+  console.log("✓ 10. ビルド不要の静的配信パスを整理後も維持");
+}
+
 await testQuizChoiceDesign();
 await testTwoChoiceBadgeVisibility();
 await testCompactExplanationDesign();
@@ -259,5 +268,6 @@ await testStableTextAndDefaultScore();
 await testQuestionMasterConversion();
 await testQuestionSpeechImplementation();
 await testQuizShowVisualLanguage();
+await testOrganizedStaticPaths();
 
 console.log("All validation checks passed.");

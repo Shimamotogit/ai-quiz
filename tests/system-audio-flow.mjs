@@ -4,8 +4,8 @@ import {
   getAnswerSystemCue,
   getGradeSystemCue,
   getQuestionCountCue
-} from "../system-audio-flow.js";
-import { rewriteSystemAudioSource } from "../system-audio-alias.js";
+} from "../assets/js/system-audio-flow.js";
+import { rewriteSystemAudioSource } from "../assets/js/system-audio-alias.js";
 
 function testAnswerCues() {
   assert.deepEqual(

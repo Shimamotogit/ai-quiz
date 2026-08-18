@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { normalizeChoiceResultClasses } from "../answer-visual-state.js";
+import { normalizeChoiceResultClasses } from "../assets/js/answer-visual-state.js";
 
 function createLabel(...classes) {
   const values = new Set(classes);
@@ -42,7 +42,7 @@ function testResultNormalization() {
 }
 
 async function testInitializationOrder() {
-  const main = await readFile(new URL("../main.js", import.meta.url), "utf8");
+  const main = await readFile(new URL("../assets/js/main.js", import.meta.url), "utf8");
   const systemAudioIndex = main.indexOf("await initializeSystemAudioFlow();");
   const questionSpeechIndex = main.indexOf("await initializeQuestionSpeech();");
   const visualStateIndex = main.indexOf("initializeAnswerVisualState();");
@@ -53,7 +53,7 @@ async function testInitializationOrder() {
 }
 
 async function testAnswerAndExplanationStyles() {
-  const css = await readFile(new URL("../ui-stability-fixes.css", import.meta.url), "utf8");
+  const css = await readFile(new URL("../assets/css/ui-stability-fixes.css", import.meta.url), "utf8");
 
   assert.match(css, /\.question-explanation\s*\{[^}]*font-size:\s*clamp\(1\.25rem, 2\.35vw, 2\.05rem\)\s*!important/s);
   assert.match(css, /#stage \.choice-label\.active\s*\{[^}]*background:\s*var\(--choice-fill/s);

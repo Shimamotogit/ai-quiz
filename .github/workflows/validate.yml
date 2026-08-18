@@ -27,21 +27,7 @@ jobs:
 
       - name: Check JavaScript syntax
         run: |
-          node --check answer-timer-feedback.js
-          node --check answer-visual-state.js
-          node --check app.js
-          node --check difficulty-filter.js
-          node --check launch-flow.js
-          node --check main.js
-          node --check navigation-priority.js
-          node --check question-source.js
-          node --check question-speech.js
-          node --check quiz-defaults.js
-          node --check quiz-media.js
-          node --check quiz-presentation.js
-          node --check quiz-show-ui.js
-          node --check system-audio-flow.js
-          node --check voicevox-credit.js
+          find assets/js -type f -name '*.js' -print0 | sort -z | xargs -0 -n1 node --check
 
       - name: Run focused validation tests
         run: |

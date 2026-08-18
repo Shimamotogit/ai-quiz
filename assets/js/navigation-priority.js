@@ -9,7 +9,7 @@ let drainingSystemAudio = false;
 let drainSafetyTimer = null;
 
 export function buildGuideImageUrl(retryToken = "") {
-  const url = new URL(`./${GUIDE_IMAGE_PATH}`, import.meta.url);
+  const url = new URL(`../../${GUIDE_IMAGE_PATH}`, import.meta.url);
   url.searchParams.set("v", GUIDE_IMAGE_VERSION);
   if (retryToken) url.searchParams.set("retry", String(retryToken));
   return url.href;
@@ -19,7 +19,7 @@ function loadNavigationStyles() {
   if (document.querySelector('link[data-navigation-priority="true"]')) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = new URL("./navigation-priority.css?v=3", import.meta.url).href;
+  link.href = new URL("../css/navigation-priority.css?v=4", import.meta.url).href;
   link.dataset.navigationPriority = "true";
   document.head.append(link);
 }

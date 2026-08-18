@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
-import { GUIDE_IMAGE_PATH, buildGuideImageUrl } from "../navigation-priority.js";
+import { GUIDE_IMAGE_PATH, buildGuideImageUrl } from "../assets/js/navigation-priority.js";
 
 function text(path) {
   return readFileSync(resolve(path), "utf8");
 }
 
-const navigation = text("navigation-priority.js");
-const navigationCss = text("navigation-priority.css");
-const launchFlow = text("launch-flow.js");
-const main = text("main.js");
+const navigation = text("assets/js/navigation-priority.js");
+const navigationCss = text("assets/css/navigation-priority.css");
+const launchFlow = text("assets/js/launch-flow.js");
+const main = text("assets/js/main.js");
 const html = text("index.html");
 
 assert.equal(GUIDE_IMAGE_PATH, "images/quiz-guide.jpg", "説明画像の固定パスはJPGである必要があります");
@@ -19,11 +19,12 @@ assert.ok(existsSync(resolve(GUIDE_IMAGE_PATH)), "説明画像 images/quiz-guide
 assert.ok(statSync(resolve(GUIDE_IMAGE_PATH)).size > 0, "説明画像 images/quiz-guide.jpg が空ファイルです");
 
 const guideUrl = new URL(buildGuideImageUrl());
-assert.ok(guideUrl.pathname.endsWith("/images/quiz-guide.jpg"), "説明画像はnavigation-priority.js基準でJPGへ解決される必要があります");
+assert.ok(guideUrl.pathname.endsWith("/images/quiz-guide.jpg"), "移動後のnavigation-priority.jsからルートの説明画像JPGへ解決される必要があります");
 assert.equal(guideUrl.searchParams.get("v"), "4", "説明画像URLに最新のキャッシュバージョンが必要です");
 const retryUrl = new URL(buildGuideImageUrl("retry-test"));
 assert.equal(retryUrl.searchParams.get("retry"), "retry-test", "画像を別URLで再取得できる必要があります");
 assert.ok(navigation.includes("import.meta.url"), "説明画像・追加CSSはモジュールURL基準で解決する必要があります");
+assert.ok(navigation.includes('new URL(`../../${GUIDE_IMAGE_PATH}`, import.meta.url)'), "移動後もルートのimages/へ解決する処理がありません");
 assert.ok(navigation.includes("refreshGuideImage(true);"), "ボタン押下時に説明画像を再取得する処理がありません");
 assert.ok(navigation.includes('close.textContent = "×";'), "説明画像を閉じる×ボタンがありません");
 assert.ok(navigation.includes('close.className = "guide-image-close";'), "×ボタン専用クラスがありません");
@@ -38,9 +39,9 @@ assert.ok(html.includes('id="showGuideImageButton"'), "タイトル画面に説�
 assert.ok(html.includes('id="showParticipantGuideImageButton"'), "参加者選択画面に説明画像ボタンがありません");
 assert.ok(html.match(/>説明画像を表示<\/button>/g)?.length >= 2, "タイトルと参加者選択の両方に説明画像ボタンが必要です");
 assert.ok(html.includes('id="backToDifficultyButton" class="secondary-button" type="button">難易度選択へ戻る</button>'), "難易度戻るボタンの名称が正しくありません");
-assert.ok(html.includes('src="main.js?v=14"'), "nginx向けのmain.jsキャッシュ更新がありません");
-assert.ok(main.includes('from "./navigation-priority.js?v=5"'), "説明画像制御JSのキャッシュ更新がありません");
-assert.ok(navigation.includes('new URL("./navigation-priority.css?v=3", import.meta.url)'), "説明画像CSSのキャッシュ更新がありません");
+assert.ok(html.includes('src="assets/js/main.js?v=15"'), "nginx向けのmain.jsパス/キャッシュ更新がありません");
+assert.ok(main.includes('from "./navigation-priority.js?v=6"'), "説明画像制御JSのキャッシュ更新がありません");
+assert.ok(navigation.includes('new URL("../css/navigation-priority.css?v=4", import.meta.url)'), "移動後の説明画像CSSパス/キャッシュ更新がありません");
 
 assert.ok(navigationCss.includes("position: fixed !important;"), "説明画像ビューは画面固定表示である必要があります");
 assert.ok(navigationCss.includes("z-index: 2147483647 !important;"), "説明画像ビューを最前面に固定できていません");
