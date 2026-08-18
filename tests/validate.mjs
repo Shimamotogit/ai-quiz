@@ -240,7 +240,7 @@ async function testQuizShowVisualLanguage() {
   assert.match(uiFixes, /\.question-card\s*\{[^}]*border:\s*1px solid rgba\(23, 32, 51, 0\.24\)\s*!important/s);
   assert.match(uiFixes, /\.setup-panel,[\s\S]*border:\s*1px solid var\(--panel-outline-strong\)\s*!important/s);
   assert.doesNotMatch(combined, /radial-gradient|backdrop-filter|rgba\(255, 0, 200/i, "AIデモ風の視覚表現がCSSへ戻っています");
-  assert.doesNotMatch(combined, /#176b5c/i, "ずんだもんを連想しやすい旧メイン緑アクセントが残っています");
+  assert.doesNotMatch(combined, /#176b5c/i, "音声キャラクターを連想しやすい旧メイン緑アクセントが残っています");
   assert.match(index, /<title>立ち位置クイズ<\/title>/);
   assert.match(index, /LIVE QUIZ/);
   assert.match(index, /AIリテラシー/);
@@ -250,7 +250,7 @@ async function testQuizShowVisualLanguage() {
 
 async function testOrganizedStaticPaths() {
   const index = await readFile(new URL("../index.html", import.meta.url), "utf8");
-  assert.ok(index.includes('src="assets/js/main.js?v=15"'), "index.htmlが整理後のJS入口を参照していません");
+  assert.ok(index.includes('src="assets/js/main.js?v=16"'), "index.htmlが整理後のJS入口を参照していません");
   for (const css of ["styles.css", "question-source.css", "feature-ui.css", "ui-stability-fixes.css"]) {
     assert.ok(index.includes(`href="assets/css/${css}"`), `index.htmlがassets/css/${css}を参照していません`);
   }
