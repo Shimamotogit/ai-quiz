@@ -68,7 +68,7 @@ function loadPresentationStyles() {
   if (document.querySelector('link[data-quiz-presentation="true"]')) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = new URL("./quiz-presentation.css?v=1", window.location.href).href;
+  link.href = new URL("../css/quiz-presentation.css?v=2", import.meta.url).href;
   link.dataset.quizPresentation = "true";
   document.head.append(link);
 }

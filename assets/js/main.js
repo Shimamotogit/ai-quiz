@@ -18,11 +18,11 @@ import { installVoicevoxCredit } from "./voicevox-credit.js";
 import { initializeQuizShowUI } from "./quiz-show-ui.js?v=2";
 import { initializeAnswerVisualState } from "./answer-visual-state.js?v=2";
 import { initializeQuizDefaults } from "./quiz-defaults.js?v=2";
-import { initializeQuizPresentation } from "./quiz-presentation.js?v=1";
+import { initializeQuizPresentation } from "./quiz-presentation.js?v=2";
 import {
   initializeGuideImageSupport,
   initializeNavigationPriority
-} from "./navigation-priority.js?v=5";
+} from "./navigation-priority.js?v=6";
 
 async function loadChoiceDisplayFixStyles() {
   const existing = document.querySelector('link[data-choice-display-fixes="true"]');
@@ -30,7 +30,7 @@ async function loadChoiceDisplayFixStyles() {
 
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = new URL("./choice-display-fixes.css", window.location.href).href;
+  link.href = new URL("../css/choice-display-fixes.css?v=1", import.meta.url).href;
   link.dataset.choiceDisplayFixes = "true";
 
   await new Promise((resolve) => {
@@ -51,7 +51,7 @@ async function loadCountdownNeutralStyles() {
 
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = new URL("./countdown-neutral.css?v=1", window.location.href).href;
+  link.href = new URL("../css/countdown-neutral.css?v=2", import.meta.url).href;
   link.dataset.countdownNeutral = "true";
 
   await new Promise((resolve) => {

@@ -10,11 +10,11 @@ const {
   LOCAL_QUESTION_SOURCE_FLAG,
   buildLocalRuntimeQuestionData,
   validateAndSanitizeQuestionData
-} = await import("../question-source.js");
-const { normalizeQuestionSettings } = await import("../difficulty-filter.js");
-const { getPreparedAudioPath } = await import("../question-speech.js");
-const { normalizeHoldDurationSeconds } = await import("../quiz-defaults.js");
-const { normalizeDefaultMaxScore } = await import("../quiz-show-ui.js");
+} = await import("../assets/js/question-source.js");
+const { normalizeQuestionSettings } = await import("../assets/js/difficulty-filter.js");
+const { getPreparedAudioPath } = await import("../assets/js/question-speech.js");
+const { normalizeHoldDurationSeconds } = await import("../assets/js/quiz-defaults.js");
+const { normalizeDefaultMaxScore } = await import("../assets/js/quiz-show-ui.js");
 
 const localInput = {
   settings: {
