@@ -1,6 +1,6 @@
-const CREDIT_TEXT = "VOICEVOX:ずんだもん";
+const CREDIT_TEXT = "VOICEVOX:春日部つむぎ";
 const VOICEVOX_TERMS_URL = "https://voicevox.hiroshiba.jp/term/";
-const ZUNDAMON_TERMS_URL = "https://zunko.jp/con_ongen_kiyaku.html";
+const KASUKABE_TSUMUGI_TERMS_URL = "https://tsumugi-official.studio.site/rule";
 
 function createExternalLink(label, href) {
   const link = document.createElement("a");
@@ -23,9 +23,9 @@ function createCreditNotice(id) {
   const separator = document.createTextNode(" ／ ");
   const voicevoxLink = createExternalLink("VOICEVOX ソフトウェア利用規約", VOICEVOX_TERMS_URL);
   const separator2 = document.createTextNode(" ／ ");
-  const zundamonLink = createExternalLink("ずんだもん音源利用規約", ZUNDAMON_TERMS_URL);
+  const tsumugiLink = createExternalLink("春日部つむぎ公式利用規約", KASUKABE_TSUMUGI_TERMS_URL);
 
-  paragraph.append(label, credit, separator, voicevoxLink, separator2, zundamonLink);
+  paragraph.append(label, credit, separator, voicevoxLink, separator2, tsumugiLink);
   return paragraph;
 }
 
