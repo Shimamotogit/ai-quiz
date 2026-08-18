@@ -14,7 +14,7 @@ import {
 } from "./question-speech.js";
 import { initializeSystemAudioFlow } from "./system-audio-flow.js";
 import { installSystemAudioAlias } from "./system-audio-alias.js";
-import { installVoicevoxCredit } from "./voicevox-credit.js";
+import { installVoicevoxCredit } from "./voicevox-credit.js?v=2";
 import { initializeQuizShowUI } from "./quiz-show-ui.js?v=2";
 import { initializeAnswerVisualState } from "./answer-visual-state.js?v=2";
 import { initializeQuizDefaults } from "./quiz-defaults.js?v=2";
