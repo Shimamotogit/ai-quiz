@@ -2,44 +2,51 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
-const CREDIT = "VOICEVOX:ずんだもん";
+const CREDIT = "VOICEVOX:春日部つむぎ";
 const VOICEVOX_TERMS = "https://voicevox.hiroshiba.jp/term/";
-const ZUNDAMON_TERMS = "https://zunko.jp/con_ongen_kiyaku.html";
+const KASUKABE_TSUMUGI_TERMS = "https://tsumugi-official.studio.site/rule";
 const VOICEVOX_QA = "https://voicevox.hiroshiba.jp/qa/";
+const OLD_CREDIT = "VOICEVOX:ずんだもん";
 
 function text(path) {
   return readFileSync(resolve(path), "utf8");
 }
 
-for (const path of [
+const creditFiles = [
   "README.md",
   "docs/AUDIO_LICENSE.md",
   "音声データ_MP3/README.md",
-  "assets/js/voicevox-credit.js"
-]) {
+  "assets/js/voicevox-credit.js",
+  "docs/DESIGN_GUIDELINES.md"
+];
+
+for (const path of creditFiles) {
   const value = text(path);
   assert.ok(value.includes(CREDIT), `${path} に音声クレジットがありません`);
+  assert.ok(!value.includes(OLD_CREDIT), `${path} に旧ずんだもんクレジットが残っています`);
 }
 
 const audioLicense = text("docs/AUDIO_LICENSE.md");
 assert.ok(audioLicense.includes(VOICEVOX_TERMS), "AUDIO_LICENSE.md にVOICEVOX公式規約への案内がありません");
-assert.ok(audioLicense.includes(ZUNDAMON_TERMS), "AUDIO_LICENSE.md にずんだもん公式規約への案内がありません");
+assert.ok(audioLicense.includes(KASUKABE_TSUMUGI_TERMS), "AUDIO_LICENSE.md に春日部つむぎ公式規約への案内がありません");
 assert.ok(audioLicense.includes(VOICEVOX_QA), "AUDIO_LICENSE.md にVOICEVOX Q&Aへの案内がありません");
-assert.ok(audioLicense.includes("確認日: 2026-08-17"), "AUDIO_LICENSE.md の公式規約確認日が更新されていません");
-assert.ok(audioLicense.includes("反社会的勢力"), "ずんだもん音源共通規約の重要な禁止事項が概要から欠落しています");
+assert.ok(audioLicense.includes("確認日: 2026-08-19"), "AUDIO_LICENSE.md の公式規約確認日が更新されていません");
+assert.ok(audioLicense.includes("二次配布"), "春日部つむぎ公式規約の二次配布禁止に関する注意がありません");
 assert.ok(audioLicense.includes("固定ハッシュの台帳は管理しません"), "音声差し替え運用がライセンス文書に明記されていません");
 
 const audioReadme = text("音声データ_MP3/README.md");
 assert.ok(audioReadme.includes(VOICEVOX_QA), "音声READMEにVOICEVOX Q&Aへの案内がありません");
-assert.ok(audioReadme.includes("2026-08-17"), "音声READMEの規約再確認日が更新されていません");
+assert.ok(audioReadme.includes("2026-08-19"), "音声READMEの規約再確認日が更新されていません");
 assert.ok(audioReadme.includes("SHA-256 台帳は管理しません"), "音声READMEに差し替え運用が明記されていません");
+assert.ok(audioReadme.includes("二次配布"), "音声READMEに二次配布の注意がありません");
 
 const creditScript = text("assets/js/voicevox-credit.js");
 assert.ok(creditScript.includes('document.querySelector("#titleStep")'), "タイトル画面にVOICEVOXクレジットを配置していません");
 assert.ok(creditScript.includes('document.querySelector("#helpPanel")'), "ヘルプ欄にVOICEVOXクレジットを配置していません");
 assert.ok(creditScript.includes("VOICEVOX ソフトウェア利用規約"), "VOICEVOX規約リンクが公式名称になっていません");
+assert.ok(creditScript.includes("春日部つむぎ公式利用規約"), "春日部つむぎ規約リンクの表示がありません");
 assert.ok(creditScript.includes(VOICEVOX_TERMS), "画面クレジットにVOICEVOX公式規約へのリンクがありません");
-assert.ok(creditScript.includes(ZUNDAMON_TERMS), "画面クレジットにずんだもん音源規約へのリンクがありません");
+assert.ok(creditScript.includes(KASUKABE_TSUMUGI_TERMS), "画面クレジットに春日部つむぎ公式規約へのリンクがありません");
 
 assert.equal(existsSync(resolve("音声データ_MP3/SHA256SUMS.txt")), false, "差し替え運用と競合するSHA-256台帳が残っています");
 
@@ -61,4 +68,4 @@ for (const requiredFile of [
   assert.ok(statSync(resolve(requiredFile)).size > 0, `必須システム音声が空です: ${requiredFile}`);
 }
 
-console.log("✓ VOICEVOX:ずんだもんのクレジット・規約案内と差し替え可能な音声構成を検証");
+console.log("✓ VOICEVOX:春日部つむぎのクレジット・公式規約案内と差し替え可能な音声構成を検証");
