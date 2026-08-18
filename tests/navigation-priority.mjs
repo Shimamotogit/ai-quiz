@@ -39,7 +39,8 @@ assert.ok(html.includes('id="showGuideImageButton"'), "タイトル画面に説�
 assert.ok(html.includes('id="showParticipantGuideImageButton"'), "参加者選択画面に説明画像ボタンがありません");
 assert.ok(html.match(/>説明画像を表示<\/button>/g)?.length >= 2, "タイトルと参加者選択の両方に説明画像ボタンが必要です");
 assert.ok(html.includes('id="backToDifficultyButton" class="secondary-button" type="button">難易度選択へ戻る</button>'), "難易度戻るボタンの名称が正しくありません");
-assert.ok(html.includes('src="assets/js/main.js?v=15"'), "nginx向けのmain.jsパス/キャッシュ更新がありません");
+assert.ok(html.includes('src="assets/js/main.js?v=16"'), "nginx向けのmain.jsパス/キャッシュ更新がありません");
+assert.ok(main.includes('from "./voicevox-credit.js?v=2"'), "音声クレジットJSのキャッシュ更新がありません");
 assert.ok(main.includes('from "./navigation-priority.js?v=6"'), "説明画像制御JSのキャッシュ更新がありません");
 assert.ok(navigation.includes('new URL("../css/navigation-priority.css?v=4", import.meta.url)'), "移動後の説明画像CSSパス/キャッシュ更新がありません");
 
