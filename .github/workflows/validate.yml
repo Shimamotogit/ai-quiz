@@ -39,3 +39,4 @@ jobs:
           node tests/system-audio-flow.mjs
           node tests/audio-license.mjs
           node tests/static-review.mjs
+          node tests/built-in-question-policy.mjs
