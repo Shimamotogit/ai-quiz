@@ -1,5 +1,6 @@
 import { configureQuestionDifficulty } from "./difficulty-filter.js?v=2";
 import { initializeQuestionSource } from "./question-source.js?v=2";
+import { installBuiltInQuestionPolicy } from "./built-in-question-policy.js?v=1";
 import {
   initializeLaunchFlow,
   installReturnToTitleHandler
@@ -77,6 +78,8 @@ initializeGuideImageSupport();
 await loadChoiceDisplayFixStyles();
 await loadCountdownNeutralStyles();
 await initializeQuestionSource();
+// ローカルJSONの差し替え処理の後段で、組み込み問題だけに出題ポリシーを適用する。
+installBuiltInQuestionPolicy();
 const launchOptions = await initializeLaunchFlow();
 configureQuestionDifficulty(launchOptions.difficulty);
 
