@@ -45,14 +45,27 @@ function testGradeThreshold() {
 }
 
 function testResultSequence() {
-  const files = buildResultSystemSequence(6, 10).map((cue) => cue.filename);
-  assert.deepEqual(files, [
+  const tenQuestionFiles = buildResultSystemSequence(6, 10).map((cue) => cue.filename);
+  assert.deepEqual(tenQuestionFiles, [
     "お疲れ様でした.mp3",
-    "10問中.mp3",
     "6問.mp3",
     "正解です。.mp3",
     "とても良い結果です！.mp3"
   ]);
+
+  const fiveQuestionFiles = buildResultSystemSequence(3, 5).map((cue) => cue.filename);
+  assert.deepEqual(fiveQuestionFiles, [
+    "お疲れ様でした.mp3",
+    "3問.mp3",
+    "正解です。.mp3",
+    "とても良い結果です！.mp3"
+  ]);
+
+  assert.equal(
+    [...tenQuestionFiles, ...fiveQuestionFiles].some((filename) => filename.includes("問中")),
+    false,
+    "成績発表では総問題数の『〇〇問中』音声を再生しない"
+  );
 }
 
 testAnswerCues();
