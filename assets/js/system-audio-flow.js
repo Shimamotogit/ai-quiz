@@ -115,7 +115,6 @@ export function getGradeSystemCue(correctCount, totalCount) {
 export function buildResultSystemSequence(correctCount, totalCount) {
   return [
     { filename: "お疲れ様でした.mp3", text: "お疲れ様でした。" },
-    getQuestionCountCue(totalCount, true),
     getQuestionCountCue(correctCount, false),
     { filename: "正解です。.mp3", text: "正解です！" },
     getGradeSystemCue(correctCount, totalCount)
